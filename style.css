@@ -258,6 +258,35 @@ a { color: inherit; }
 .contact-email { margin-top: 22px; font-size: 0.98rem; color: rgba(250, 247, 242, 0.8); }
 .contact-email a { color: var(--brass-light); text-decoration: none; border-bottom: 1px solid rgba(216, 185, 111, 0.4); }
 .contact-email a:hover { border-bottom-color: var(--brass-light); }
+.contact-phone { margin-top: 10px; font-size: 0.98rem; color: rgba(250, 247, 242, 0.8); }
+.contact-phone a { color: var(--brass-light); text-decoration: none; border-bottom: 1px solid rgba(216, 185, 111, 0.4); }
+.contact-phone a:hover { border-bottom-color: var(--brass-light); }
+.contact-local {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 22px;
+  font-size: 0.92rem;
+  color: rgba(250, 247, 242, 0.72);
+}
+
+/* ---------- Local positioning ---------- */
+.hero-local {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 28px;
+  padding: 9px 18px;
+  border: 1px solid rgba(216, 185, 111, 0.45);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  color: rgba(250, 247, 242, 0.92);
+  background: rgba(255, 255, 255, 0.06);
+}
+.pin { width: 15px; height: 15px; fill: var(--brass-light); flex: none; }
+.section-text strong { color: var(--pine); font-weight: 700; }
+.section-text + .section-text { margin-top: 1.1rem; }
+[hidden] { display: none !important; }
 
 /* ---------- Footer ---------- */
 .footer {
@@ -303,6 +332,7 @@ a:focus-visible, .btn:focus-visible, button:focus-visible {
 @media (max-width: 720px) {
   .hero { padding: 96px 0 140px; }
   .hero-range { height: 96px; }
+  .hero-local { font-size: 0.8rem; padding: 8px 14px; gap: 6px; margin-top: 24px; }
   .section { padding: 68px 0; }
   .nav { padding: 14px 20px; }
   .nav-links { gap: 14px; }

@@ -50,6 +50,10 @@
           treats the people and places we invest in like they matter. Because they do.
         </p>
         <a href="#contact" class="btn">Get in touch</a>
+      <p class="hero-local">
+        <svg class="pin" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
+        Based in Union, KY &middot; Serving Northern Kentucky &amp; Greater Cincinnati
+      </p>
       </div>
       <svg class="hero-range" viewBox="0 0 1440 160" preserveAspectRatio="none" aria-hidden="true" focusable="false">
         <path d="M0 160 L0 96 L220 40 L400 104 L560 24 L760 112 L960 48 L1160 108 L1320 56 L1440 100 L1440 160 Z" />
@@ -66,6 +70,11 @@
           what someone else worked hard to build: keep the team, serve the customers, and grow
           it patiently and honestly. We care about doing right by the people on the other side
           of the table — sellers, employees, tenants, and partners alike.
+        </p>
+        <p class="section-text">
+          And we're <strong>local</strong> — based right here in Union, Kentucky. Not an
+          out-of-state fund or a faraway buyer, but a neighbor who knows this area and intends
+          to be part of it for a long time. We're always glad to meet face-to-face.
         </p>
       </div>
     </section>
@@ -149,6 +158,16 @@
           or reach us directly at
           <a href="mailto:sales@mtzioncapital.com?subject=Inquiry%20for%20Mt.%20Zion%20Capital">sales@mtzioncapital.com</a>
         </p>
+        <p class="contact-phone" hidden>
+          Prefer to call? <a id="callLink" href="#">Call us</a>
+        </p>
+        <noscript>
+          <p class="contact-phone">Prefer to call? Email us and we'll gladly share our number.</p>
+        </noscript>
+        <p class="contact-local">
+          <svg class="pin" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
+          Local to Union, KY — happy to meet in person.
+        </p>
       </div>
     </section>
   </main>
@@ -174,6 +193,25 @@
 
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Phone is assembled at runtime from a base64 string so spam bots that read
+    // the static HTML source don't harvest it. To set your real number, base64-
+    // encode it in "+1XXXXXXXXXX" form and replace `enc` below (steps in README).
+    // (The number below is set; base64 keeps it out of the raw HTML source.)
+    (function () {
+      try {
+        var enc = 'KzE4NTkyNDA2Mzgx';            // base64 of +18592406381
+        var num = atob(enc);
+        var link = document.getElementById('callLink');
+        if (link && /^\+?\d{10,}$/.test(num)) {
+          var d = num.replace(/\D/g, '').slice(-10);
+          link.href = 'tel:' + num;
+          link.textContent = '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6);
+          var wrap = link.closest('.contact-phone');
+          if (wrap) wrap.hidden = false;
+        }
+      } catch (e) { /* fall back to the no-JS message */ }
+    })();
   </script>
 </body>
 </html>

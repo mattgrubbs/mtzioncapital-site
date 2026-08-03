@@ -23,6 +23,28 @@ Everything you'll want to change is plain text in `index.html`:
 - **Location** — search for `Union, KY` / `Union, Kentucky`.
 - **Footer verse** — the `footer-verse` line (remove it if you'd rather not have it).
 
+## Setting the phone number (spam-resistant)
+
+The phone number is **not** written into the page as plain text — spam bots scrape
+static HTML for phone patterns, so instead the number is stored **base64-encoded**
+and assembled by JavaScript at load time (see the `<script>` at the bottom of
+`index.html`). Bots that don't run JavaScript never see the digits.
+
+To set your real number:
+
+1. Encode it in `+1XXXXXXXXXX` form:
+   ```bash
+   python3 -c "import base64; print(base64.b64encode('+18595551234'.encode()).decode())"
+   ```
+2. Copy the output and replace the `enc = '...'` value in the `<script>` block of `index.html`.
+
+The current value is already set to the site's live number — follow the steps above to change it.
+
+> **Tip:** For the best real-world spam protection, point the site at a free
+> **Google Voice** number (pick an **859** area code to reinforce "local"), and
+> forward it to your cell. Google Voice screens spam calls and keeps your personal
+> number private — so even if the number is ever harvested, you stay in control.
+
 ## Turning on GitHub Pages (one-time)
 
 1. Push this repo to GitHub (branch `main`).
