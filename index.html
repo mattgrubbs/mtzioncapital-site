@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MT Zion Capital</title>
+  <meta name="description" content="MT Zion Capital — strategic investment and capital management." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="container nav">
+      <a href="#home" class="logo">MT&nbsp;Zion&nbsp;Capital</a>
+      <nav class="nav-links">
+        <a href="#about">About</a>
+        <a href="#services">Services</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="home" class="hero">
+    <div class="container">
+      <h1>Building lasting wealth through disciplined investing.</h1>
+      <p class="hero-sub">MT Zion Capital partners with individuals and institutions to grow and protect capital across markets.</p>
+      <a href="#contact" class="btn">Get in touch</a>
+    </div>
+  </section>
+
+  <section id="about" class="section">
+    <div class="container">
+      <h2 class="section-title">About Us</h2>
+      <p class="section-text">
+        MT Zion Capital is an investment management firm focused on long-term value creation.
+        We combine fundamental research with a disciplined, risk-aware approach to identify
+        opportunities across asset classes. Our mission is to deliver consistent, risk-adjusted
+        returns while preserving capital through market cycles.
+      </p>
+    </div>
+  </section>
+
+  <section id="services" class="section section-alt">
+    <div class="container">
+      <h2 class="section-title">What We Do</h2>
+      <div class="cards">
+        <div class="card">
+          <h3>Portfolio Management</h3>
+          <p>Customized portfolios built around your goals, risk tolerance, and time horizon.</p>
+        </div>
+        <div class="card">
+          <h3>Capital Advisory</h3>
+          <p>Strategic guidance on capital allocation, structuring, and growth initiatives.</p>
+        </div>
+        <div class="card">
+          <h3>Market Research</h3>
+          <p>In-depth analysis of market trends, sectors, and individual opportunities.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="section">
+    <div class="container narrow">
+      <h2 class="section-title">Contact</h2>
+      <p class="section-text center">Interested in working with us? Reach out and we'll be in touch.</p>
+      <form class="contact-form" onsubmit="event.preventDefault(); alert('Thank you — this is a demo form. Connect a backend or form service to receive messages.');">
+        <input type="text" name="name" placeholder="Your name" required />
+        <input type="email" name="email" placeholder="Your email" required />
+        <textarea name="message" rows="4" placeholder="How can we help?" required></textarea>
+        <button type="submit" class="btn">Send message</button>
+      </form>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; <span id="year"></span> MT Zion Capital. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
