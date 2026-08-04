@@ -314,6 +314,7 @@ a { color: inherit; }
   max-width: 560px;
 }
 .footer-verse .smallcaps { font-variant: small-caps; letter-spacing: 0.03em; }
+.footer-cite { display: block; margin-top: 10px; font-family: var(--sans); font-style: normal; font-size: 0.76rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--brass-light); }
 .footer-meta { font-size: 0.86rem; color: rgba(250, 247, 242, 0.55); }
 
 /* ---------- Focus states / a11y ---------- */
