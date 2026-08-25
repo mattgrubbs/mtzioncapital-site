@@ -3,58 +3,83 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mt. Zion Capital | Local business and real estate buyer in Union, KY</title>
-  <meta name="description" content="Mt. Zion Capital buys and runs small businesses and real estate in Northern Kentucky. Locally owned in Union, KY, and in it for the long haul." />
+  <title>Mt. Zion Capital | Long-Term Owners of Northern Kentucky Businesses &amp; Real Estate</title>
+  <meta name="description" content="Mt. Zion Capital is a private, family-owned company in Union, KY that acquires and operates established small businesses and real estate across Northern Kentucky and Greater Cincinnati." />
   <meta name="theme-color" content="#1f3d34" />
-  <link rel="canonical" href="https://mattgrubbs.github.io/mtzioncapital-site/" />
+  <link rel="canonical" href="https://www.mtzioncapital.com/" />
 
-  <!-- Open Graph / social preview -->
   <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Mt. Zion Capital" />
   <meta property="og:title" content="Mt. Zion Capital" />
   <meta property="og:description" content="Long-term owners of good businesses and real estate. Based in Union, Kentucky." />
-  <meta property="og:url" content="https://mattgrubbs.github.io/mtzioncapital-site/" />
+  <meta property="og:url" content="https://www.mtzioncapital.com/" />
 
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="site.css" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Mt. Zion Capital LLC",
+    "url": "https://www.mtzioncapital.com/",
+    "email": "sales@mtzioncapital.com",
+    "address": { "@type": "PostalAddress", "addressLocality": "Union", "addressRegion": "KY", "addressCountry": "US" },
+    "areaServed": "Northern Kentucky and Greater Cincinnati",
+    "founder": {
+      "@type": "Person",
+      "name": "Matthew Grubbs",
+      "sameAs": "https://www.linkedin.com/in/mattgrubbs/"
+    }
+  }
+  </script>
 </head>
 <body>
   <header class="header">
     <div class="container nav">
-      <a href="#home" class="logo" aria-label="Mt. Zion Capital home">
+      <a href="index.html" class="logo" aria-label="Mt. Zion Capital home">
         <svg class="logo-mark" viewBox="0 0 40 32" aria-hidden="true" focusable="false">
           <path d="M2 30 L14 8 L21 20 L26 12 L38 30 Z" fill="currentColor" />
           <path d="M14 8 L9.5 16.2 L18.5 16.2 Z" fill="#faf7f2" opacity="0.92" />
         </svg>
         <span>Mt.&nbsp;Zion&nbsp;Capital</span>
       </a>
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true" />
+      <label for="nav-toggle" class="nav-toggle-label" aria-label="Menu">
+        <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </label>
       <nav class="nav-links" aria-label="Primary">
-        <a href="#about">About</a>
-        <a href="#what-we-do">What we do</a>
-        <a href="#values">How we work</a>
-        <a href="#contact" class="nav-cta">Get in touch</a>
+        <a href="index.html" aria-current="page">Home</a>
+        <a href="about.html">About</a>
+        <a href="careers.html">Careers</a>
+        <a href="contact.html" class="nav-cta">Contact</a>
       </nav>
     </div>
   </header>
 
   <main>
-    <section id="home" class="hero">
+    <section class="hero">
       <div class="container hero-inner">
         <p class="eyebrow">Union, Kentucky</p>
         <h1>We buy good businesses and hold them for the long run.</h1>
         <p class="hero-sub">
-          We're a small, local outfit that buys businesses and property to own for the long
-          haul. When we take something on, we look after the people who work there and the
-          customers who count on it.
+          Mt. Zion Capital is a private, family-owned company that acquires established
+          small businesses and real estate across Northern Kentucky and Greater Cincinnati.
+          We own what we buy for decades, not quarters.
         </p>
-        <a href="#contact" class="btn">Get in touch</a>
-      <p class="hero-local">
-        <svg class="pin" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
-        Based in Union, KY &middot; Serving Northern Kentucky &amp; Greater Cincinnati
-      </p>
+        <div class="hero-actions">
+          <a href="contact.html" class="btn">Start a conversation</a>
+          <a href="about.html" class="btn btn-outline">Learn about us</a>
+        </div>
+        <p class="hero-local">
+          <svg class="pin" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
+          Based in Union, KY &middot; Serving Northern Kentucky &amp; Greater Cincinnati
+        </p>
       </div>
       <svg class="hero-range" viewBox="0 0 1440 160" preserveAspectRatio="none" aria-hidden="true" focusable="false">
         <path d="M0 160 L0 96 L220 40 L400 104 L560 24 L760 112 L960 48 L1160 108 L1320 56 L1440 100 L1440 160 Z" />
@@ -64,18 +89,18 @@
     <section id="about" class="section">
       <div class="container narrow">
         <p class="kicker">Who we are</p>
-        <h2 class="section-title">We're owners for the long haul, not a fund or a flipper.</h2>
+        <h2 class="section-title">Owners for the long haul. Not a fund, not a flipper.</h2>
         <p class="section-text">
-          Mt. Zion Capital is an independent company that buys and runs small businesses and
-          real estate. When we buy a business, we want to take care of what the owner spent years
-          building. We keep the people who work there, look after the customers, and grow it
-          slowly and honestly. We try to do right by everyone involved, whether that's a seller,
-          an employee, or a tenant.
+          When we buy a business, we take care of what the owner spent years building. We keep
+          the people who work there, look after the customers, and grow it slowly and honestly.
+          We try to do right by everyone involved, whether that's a seller, an employee, or a
+          tenant.
         </p>
         <p class="section-text">
-          We're <strong>local</strong>, too, based right here in Union, Kentucky. So you're not
-          dealing with an out-of-state fund or a buyer from three states away. We know the area,
-          we live here, and we're always happy to meet up in person over coffee.
+          We're <strong>local</strong>, based right here in Union, Kentucky. You're not dealing
+          with an out-of-state fund or a buyer from three states away. The company was founded
+          by an engineer who spent more than two decades building products and leading teams in
+          Northern Kentucky and Cincinnati manufacturing. <a href="about.html">Read our story</a>.
         </p>
       </div>
     </section>
@@ -83,10 +108,12 @@
     <section id="what-we-do" class="section section-alt">
       <div class="container">
         <p class="kicker center">What we do</p>
-        <h2 class="section-title center">Here's what we do.</h2>
+        <h2 class="section-title center">Four ways we put capital to work.</h2>
         <div class="cards">
           <div class="card">
-            <div class="card-icon" aria-hidden="true">🤝</div>
+            <span class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>
+            </span>
             <h3>Small-business acquisition</h3>
             <p>
               We buy established, profitable small businesses from owners who are ready to move
@@ -95,15 +122,19 @@
             </p>
           </div>
           <div class="card">
-            <div class="card-icon" aria-hidden="true">🏠</div>
+            <span class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9h13v-9"/><path d="M10 19v-5h4v5"/></svg>
+            </span>
             <h3>Real estate</h3>
             <p>
-              We buy and manage houses and commercial buildings, mostly places we can fix up
-              and hold onto. We'd rather improve a property than flip it.
+              We buy and manage houses and commercial buildings, mostly places we can improve
+              and hold onto. We'd rather make a property better than flip it.
             </p>
           </div>
           <div class="card">
-            <div class="card-icon" aria-hidden="true">🧭</div>
+            <span class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><circle cx="8.5" cy="8" r="3"/><circle cx="16.2" cy="9.6" r="2.4"/><path d="M3.5 20c0-3 2.2-5 5-5s5 2 5 5"/><path d="M14.8 15.4c2.7.2 4.7 2.1 4.7 4.6"/></svg>
+            </span>
             <h3>Partnerships</h3>
             <p>
               Sometimes the best deal is a partnership. We're glad to team up with operators or
@@ -111,10 +142,12 @@
             </p>
           </div>
           <div class="card">
-            <div class="card-icon" aria-hidden="true">🔧</div>
+            <span class="card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+            </span>
             <h3>Hands-on ownership</h3>
             <p>
-              We stay involved. We'd rather be hands-on and help run the business day to day
+              We stay involved. We'd rather be on site and help run the business day to day
               than manage it from far away.
             </p>
           </div>
@@ -122,7 +155,40 @@
       </div>
     </section>
 
-    <section id="values" class="section">
+    <section id="sellers" class="section">
+      <div class="container">
+        <p class="kicker center">For sellers</p>
+        <h2 class="section-title center">A straightforward path, at your pace.</h2>
+        <p class="section-text center">
+          Selling a business you built is a big decision. Here's how it works with us.
+        </p>
+        <div class="steps">
+          <div class="step">
+            <h3>A quiet conversation</h3>
+            <p>
+              We start with coffee, not paperwork. Everything you share stays confidential,
+              and there's no obligation on either side.
+            </p>
+          </div>
+          <div class="step">
+            <h3>A fair, transparent offer</h3>
+            <p>
+              If it's a fit, we'll make an honest offer with clear terms and explain exactly
+              how we got there. No games, no retrading.
+            </p>
+          </div>
+          <div class="step">
+            <h3>A careful handoff</h3>
+            <p>
+              We work the transition on a timeline that suits you, keep your team in place,
+              and treat the name you built with respect.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="values" class="section section-alt">
       <div class="container">
         <p class="kicker center">How we work</p>
         <h2 class="section-title center">What matters to us.</h2>
@@ -152,20 +218,14 @@
         <p class="kicker center">Let's talk</p>
         <h2 class="section-title">Looking to sell, or have a deal worth a look?</h2>
         <p class="section-text center">
-          Whether it's a business you've spent years building or a piece of property, I'd like
+          Whether it's a business you've spent years building or a piece of property, we'd like
           to hear from you. There's no pressure and no obligation, just a straight conversation.
         </p>
-        <a href="mailto:sales@mtzioncapital.com?subject=Inquiry%20for%20Mt.%20Zion%20Capital" class="btn btn-lg">Email us</a>
+        <a href="contact.html" class="btn btn-lg">Get in touch</a>
         <p class="contact-email">
-          or reach us directly at
+          or email us directly at
           <a href="mailto:sales@mtzioncapital.com?subject=Inquiry%20for%20Mt.%20Zion%20Capital">sales@mtzioncapital.com</a>
         </p>
-        <p class="contact-phone" hidden>
-          Prefer to call? <a id="callLink" href="#">Call us</a>
-        </p>
-        <noscript>
-          <p class="contact-phone">Prefer to call? Email us and we'll gladly share our number.</p>
-        </noscript>
         <p class="contact-local">
           <svg class="pin" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/></svg>
           We're based in Union, KY, and always happy to meet in person.
@@ -175,46 +235,46 @@
   </main>
 
   <footer class="footer">
-    <div class="container footer-inner">
-      <div class="footer-brand">
-        <svg class="logo-mark" viewBox="0 0 40 32" aria-hidden="true" focusable="false">
-          <path d="M2 30 L14 8 L21 20 L26 12 L38 30 Z" fill="currentColor" />
-          <path d="M14 8 L9.5 16.2 L18.5 16.2 Z" fill="#1f3d34" opacity="0.92" />
-        </svg>
-        <span>Mt. Zion Capital LLC</span>
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <p class="footer-brand">
+            <svg class="logo-mark" viewBox="0 0 40 32" aria-hidden="true" focusable="false">
+              <path d="M2 30 L14 8 L21 20 L26 12 L38 30 Z" fill="currentColor" />
+              <path d="M14 8 L9.5 16.2 L18.5 16.2 Z" fill="#17302a" opacity="0.92" />
+            </svg>
+            <span>Mt. Zion Capital LLC</span>
+          </p>
+          <p class="footer-verse">
+            &ldquo;Those who trust in the <span class="smallcaps">Lord</span> are like Mount Zion,
+            which cannot be moved, but abides forever.&rdquo;
+            <span class="footer-cite">Psalm 125:1</span>
+          </p>
+        </div>
+        <div>
+          <h4>Explore</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About us</a></li>
+            <li><a href="careers.html">Careers</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <ul class="footer-contact">
+            <li><a href="mailto:sales@mtzioncapital.com">sales@mtzioncapital.com</a></li>
+            <li>Union, Kentucky</li>
+            <li>Serving Northern Kentucky &amp; Greater Cincinnati</li>
+          </ul>
+        </div>
       </div>
-      <p class="footer-verse">
-        &ldquo;Those who trust in the <span class="smallcaps">Lord</span> are like Mount Zion,
-        which cannot be moved, but abides forever.&rdquo;
-        <span class="footer-cite">Psalm 125:1</span>
-      </p>
-      <p class="footer-meta">
-        Union, KY &middot; &copy; <span id="year"></span> Mt. Zion Capital LLC
-      </p>
+      <div class="footer-bottom">
+        &copy; <span id="year">2026</span> Mt. Zion Capital LLC &middot; Union, KY
+      </div>
     </div>
   </footer>
 
-  <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
-
-    // Phone is assembled at runtime from a base64 string so spam bots that read
-    // the static HTML source don't harvest it. To set your real number, base64-
-    // encode it in "+1XXXXXXXXXX" form and replace `enc` below (steps in README).
-    // (The number below is set; base64 keeps it out of the raw HTML source.)
-    (function () {
-      try {
-        var enc = 'KzE4NTkyNDA2Mzgx';            // base64 of +18592406381
-        var num = atob(enc);
-        var link = document.getElementById('callLink');
-        if (link && /^\+?\d{10,}$/.test(num)) {
-          var d = num.replace(/\D/g, '').slice(-10);
-          link.href = 'tel:' + num;
-          link.textContent = '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6);
-          var wrap = link.closest('.contact-phone');
-          if (wrap) wrap.hidden = false;
-        }
-      } catch (e) { /* fall back to the no-JS message */ }
-    })();
-  </script>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>
