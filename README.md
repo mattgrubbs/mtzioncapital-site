@@ -31,8 +31,9 @@ redirects to `mtzioncapital.com/careers`. Share the extensionless form.
 
 ## Editing content
 
-- **Job postings** — `careers.html`, inside the `<article class="job-card">` block.
-  Copy the block to add a second posting; delete it when a search closes.
+- **Job postings** — `careers.html`. It currently shows a coming-soon panel; to
+  publish a role, replace that panel with an `<article class="job-card">` block
+  (the format is in git history) and update the page's `meta description`.
 - **Founder bio** — `about.html`, the `founder` section.
 - **Contact email** — search all pages for `sales@mtzioncapital.com`.
 - **Phone number** — `contact.html` only. It's stored base64-encoded so bots can't
