@@ -23,15 +23,11 @@ assets, configured by `wrangler.toml`), NOT by GitHub Pages. GitHub hosts the co
 and a copy also renders at https://mattgrubbs.github.io/mtzioncapital-site/, but the
 custom domain points at Cloudflare.
 
-To publish changes to the live domain:
+**To publish: just `git push` to `main`.** The Cloudflare project is connected to
+this GitHub repo and auto-deploys in about 2–3 minutes (verified 2026-08-25).
 
-```bash
-npx wrangler deploy
-```
-
-(logs into your Cloudflare account the first time). If the Cloudflare project is
-connected to this GitHub repo with automatic builds, a plain `git push` publishes
-too — check which happens by pushing and watching whether the live site updates.
+Cloudflare serves clean extensionless URLs — `mtzioncapital.com/careers.html`
+redirects to `mtzioncapital.com/careers`. Share the extensionless form.
 
 ## Editing content
 
