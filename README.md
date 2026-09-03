@@ -138,6 +138,7 @@ upload (never read) until you revoke it.
 
 ```bash
 npm run link:list
+npm run link:update -- <first 8+ characters> --days 90    # change expiry (or --never)
 npm run link:revoke -- <first 8+ characters of the token>
 npm run link:delete -- <token>
 ```

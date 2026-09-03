@@ -12,6 +12,7 @@
     "set-turnstile": "node scripts/set-turnstile.mjs",
     "link:create": "node scripts/link.mjs create",
     "link:list": "node scripts/link.mjs list",
+    "link:update": "node scripts/link.mjs update",
     "link:revoke": "node scripts/link.mjs revoke",
     "link:delete": "node scripts/link.mjs delete"
   },

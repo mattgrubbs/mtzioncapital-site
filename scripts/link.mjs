@@ -5,6 +5,7 @@
 //   npm run link:create -- --label "Acme HVAC" --days 30              expires in 30 days
 //   npm run link:create -- --label "Acme HVAC" --no-password          (link+password mode only) this link skips the password
 //   npm run link:list
+//   npm run link:update -- <token or first 8+ characters> --days 90   change expiry (or --never); --label to rename
 //   npm run link:revoke -- <token or first 8+ characters>
 //   npm run link:delete -- <token or first 8+ characters>
 //
@@ -89,6 +90,22 @@ switch (command) {
     links.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)).forEach(printLink);
     break;
   }
+  case 'update': {
+    const token = await resolveToken(args._[0]);
+    const data = await getLink(token);
+    if (!data) fail('Link not found.');
+    let expiresAt = data.expiresAt;
+    if (args.never) expiresAt = null;
+    else if (args.days) {
+      const d = parseInt(args.days, 10);
+      if (!(d > 0)) fail('--days must be a positive number.');
+      expiresAt = new Date(Date.now() + d * 86400000).toISOString();
+    } else if (!args.label) fail('Say what to change: --days 90, --never, or --label "New name"');
+    const label = args.label ? String(args.label).trim().slice(0, 80) : data.label;
+    await kv('put', [`link:${token}`, JSON.stringify({ ...data, label, expiresAt, updatedAt: new Date().toISOString() })]);
+    console.log(`\n  Updated "${label}": expires ${expiresAt ? expiresAt.slice(0, 10) : 'never'}.${data.revoked ? ' Note: this link is revoked and stays revoked.' : ''}\n`);
+    break;
+  }
   case 'revoke': {
     const token = await resolveToken(args._[0]);
     const data = await getLink(token);
@@ -104,5 +121,5 @@ switch (command) {
     break;
   }
   default:
-    fail('Usage: node scripts/link.mjs <create|list|revoke|delete> [options]');
+    fail('Usage: node scripts/link.mjs <create|list|update|revoke|delete> [options]');
 }
