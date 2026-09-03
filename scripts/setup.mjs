@@ -90,6 +90,7 @@ else {
 // 5. Upload password
 step(5, 'Upload password (UPLOAD_PASSWORD_HASH)');
 if (args['skip-password']) note('skipped (--skip-password). Run  npm run set-password  later.');
+else if ((tomlVar('ACCESS_MODE', 'link') || 'link').toLowerCase() === 'link') note('not needed: ACCESS_MODE is "link" (personal links are the key). If you switch modes later, run  npm run set-password');
 else {
   const pw = await promptHidden('      Choose the upload password (at least 12 characters): ');
   if (pw.length < 12) fail('Password must be at least 12 characters. Re-run setup, or use: npm run set-password');

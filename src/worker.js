@@ -5,9 +5,12 @@
  * static site (wrangler.toml [assets]).
  *
  * Security model (details in README, "Secure client upload portal"):
- *  - The shared password is verified server-side against a PBKDF2-SHA256 hash
- *    stored as a Worker secret (UPLOAD_PASSWORD_HASH). Constant-time compare.
- *  - Optional per-client links (/upload?c=TOKEN) live in KV: revocable, expirable.
+ *  - ACCESS_MODE decides the credential: "link" (default) = a personal URL
+ *    (/upload?c=TOKEN) is the credential, no password; "password" = a shared
+ *    password; "link+password" = both. Links live in KV: revocable, expirable,
+ *    and every upload is attributed to the link it came through.
+ *  - Passwords (when used) are verified server-side against a PBKDF2-SHA256
+ *    hash stored as a Worker secret (UPLOAD_PASSWORD_HASH). Constant-time compare.
  *  - A successful login issues a short-lived HMAC-signed HttpOnly cookie.
  *  - Cloudflare Turnstile (when configured) blocks bots on the password step.
  *  - Per-IP rate limits on login attempts and on uploads (KV counters).
@@ -94,11 +97,12 @@ async function handleApi(request, env, ctx, url) {
 function getConfig(env) {
   return json({
     ok: true,
-    ready: Boolean(env.UPLOAD_PASSWORD_HASH && env.SESSION_SECRET),
+    ready: portalReady(env),
+    accessMode: accessMode(env),
     turnstileSiteKey: env.TURNSTILE_SITE_KEY || '',
     maxFileMB: maxFileMB(env),
     allowedExt: Object.keys(TYPES),
-    requireClientLink: flag(env.REQUIRE_CLIENT_LINK),
+    requireClientLink: accessMode(env) !== 'password',
     retentionDays: parseInt(env.RETENTION_DAYS || '90', 10) || 90,
   });
 }
@@ -112,8 +116,9 @@ async function getSession(request, env) {
 
 // ---------- POST /api/upload/auth ----------
 async function postAuth(request, env, ctx) {
-  if (!env.UPLOAD_PASSWORD_HASH || !env.SESSION_SECRET) {
-    log('config_error', { missing: !env.UPLOAD_PASSWORD_HASH ? 'UPLOAD_PASSWORD_HASH' : 'SESSION_SECRET' });
+  const mode = accessMode(env);
+  if (!portalReady(env)) {
+    log('config_error', { missing: !env.SESSION_SECRET ? 'SESSION_SECRET' : 'UPLOAD_PASSWORD_HASH', mode });
     return json({ ok: false, error: 'not_configured', message: 'The upload portal is not set up yet.' }, 503);
   }
 
@@ -136,7 +141,8 @@ async function postAuth(request, env, ctx) {
     }
   }
 
-  // Optional per-client link. Required when REQUIRE_CLIENT_LINK=true.
+  // Per-client link: the credential in "link" mode, required in "link+password",
+  // optional (attribution only) in "password" mode.
   let link = null;
   let linkKey = null;
   const token = typeof body.c === 'string' ? body.c.trim() : '';
@@ -155,11 +161,13 @@ async function postAuth(request, env, ctx) {
       log('link_rejected', { iph, reason: problem, tid: token.slice(0, 8) });
       return json({ ok: false, error: 'link_invalid', message: 'This upload link is no longer active. Please contact us for a new one.' }, 403);
     }
-  } else if (flag(env.REQUIRE_CLIENT_LINK)) {
+  } else if (mode !== 'password') {
     return json({ ok: false, error: 'link_required', message: 'A personal upload link is required. Please use the link we sent you.' }, 403);
   }
 
-  const needPassword = !(link && link.noPassword === true);
+  const needPassword = mode === 'password' ? true
+    : mode === 'link' ? false
+    : !(link && link.noPassword === true);
   if (needPassword && !(await verifyPassword(env, body.password))) {
     log('auth_failed', { iph, viaLink: Boolean(link) });
     return json({ ok: false, error: 'bad_password', message: 'That password is not correct.' }, 401);
@@ -414,7 +422,17 @@ function slug(label) {
 }
 
 // ---------- Config helpers ----------
-function flag(v) { return String(v || '').toLowerCase() === 'true'; }
+// ACCESS_MODE: "link" (personal URL is the credential, no password),
+// "password" (shared password; links optional, for attribution), or
+// "link+password" (both; a link created with --no-password skips the password).
+function accessMode(env) {
+  const m = String(env.ACCESS_MODE || 'link').toLowerCase().replace(/\s+/g, '');
+  return m === 'password' || m === 'link+password' ? m : 'link';
+}
+
+function portalReady(env) {
+  return Boolean(env.SESSION_SECRET) && (accessMode(env) === 'link' || Boolean(env.UPLOAD_PASSWORD_HASH));
+}
 
 function maxFileMB(env) {
   const n = parseInt(env.MAX_FILE_MB || '50', 10) || 50;

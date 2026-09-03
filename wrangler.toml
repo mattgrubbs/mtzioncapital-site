@@ -19,13 +19,15 @@ bucket_name = "mtzion-client-uploads"
 # `npm run setup` creates the namespace and replaces the placeholder id below.
 [[kv_namespaces]]
 binding = "PORTAL_KV"
-id = "00000000000000000000000000000000"
+id = "5515096b8ba9489b9e3e9878f6c0d76d"
 
 [vars]
 PUBLIC_SITE_URL = "https://www.mtzioncapital.com"
 MAX_FILE_MB = "50"
 SESSION_TTL_MIN = "30"
-REQUIRE_CLIENT_LINK = "false"
+# How clients get in: "link" = their personal URL is the key (no password),
+# "password" = shared password only, "link+password" = both.
+ACCESS_MODE = "link"
 TURNSTILE_SITE_KEY = ""
 RETENTION_DAYS = "90"
 

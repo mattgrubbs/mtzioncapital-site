@@ -71,14 +71,15 @@ For a quick static-only look (upload page will not function): `cd public && pyth
 
 An unlisted page where clients send financial documents instead of emailing them:
 **https://www.mtzioncapital.com/upload**. It is not in the menu, not in the sitemap,
-and marked `noindex`. You share the address and the password directly.
+and marked `noindex`. Each client gets a **personal link**; the link itself is the key, so
+there is nothing for them to type and no shared password to leak.
 
 ### How it protects documents
 
 | Layer | What happens |
 |-------|--------------|
 | In transit | HTTPS with modern TLS, terminated at Cloudflare's edge. |
-| Password | Checked **on the server** (a Cloudflare Worker), never in the page. Stored only as a PBKDF2-SHA256 hash in a Cloudflare secret. Constant-time comparison. |
+| Access | Default `link` mode: a personal URL per client (`/upload?c=<token>`, a 256-bit random token that cannot be guessed) checked **on the server**, revocable one at a time, with optional expiry. Password modes (optional) use a PBKDF2-SHA256 hash held in a Cloudflare secret with constant-time comparison. |
 | Bots | Cloudflare Turnstile on the password step (once you enable it). |
 | Brute force | 10 login attempts per IP per 10 minutes, then a 429. |
 | Session | 30-minute signed (HMAC-SHA256) cookie, HttpOnly, Secure, SameSite=Strict, scoped to `/api/upload`. |
@@ -98,7 +99,7 @@ Cloudflare account the crown jewels**: turn on two-factor authentication there.
 cd "~/Desktop/Jesus is Lord/mtzioncapital-site"
 npm install
 npx wrangler login        # opens your browser; approve once
-npm run setup             # creates bucket, KV, retention rule, secrets; asks for the password
+npm run setup             # creates bucket, KV, retention rule, secrets (asks for a password only in password modes)
 ```
 
 `npm run setup` edits `wrangler.toml` (fills in the KV namespace id). Commit and push it:
@@ -121,36 +122,43 @@ Recommended follow-ups:
 
 ### Day-to-day
 
-**Give a client access.** Two options, which you can mix:
+**Give a client access.** Create a personal link per client or deal and send it to them.
+The link is the key: nothing to type, and you can shut off any one link without affecting
+anyone else.
 
-1. *Shared password.* Send the client `https://www.mtzioncapital.com/upload` plus the
-   password. Prefer giving the password by phone or text rather than in the same email as
-   the link.
-2. *Personal link* (recommended). Create one per client or deal:
-   ```bash
-   npm run link:create -- --label "Acme HVAC (Bob Smith)"
-   npm run link:create -- --label "Acme HVAC" --days 30        # expires in 30 days
-   npm run link:create -- --label "Acme HVAC" --no-password    # link alone is enough
-   ```
-   It prints a link like `https://www.mtzioncapital.com/upload?c=…`. Files uploaded
-   through it land in a folder named after the label, so you can tell who sent what.
-   ```bash
-   npm run link:list
-   npm run link:revoke -- <first 8+ characters of the token>
-   npm run link:delete -- <token>
-   ```
+```bash
+npm run link:create -- --label "Acme HVAC (Bob Smith)"
+npm run link:create -- --label "Acme HVAC" --days 30        # expires in 30 days
+```
 
-**Tighten to link-only.** When you no longer want the shared password to work on its own,
-set `REQUIRE_CLIENT_LINK = "true"` in `wrangler.toml` and push. Then revoking a link truly
-cuts that person off.
+It prints a link like `https://www.mtzioncapital.com/upload?c=<token>`. Files uploaded
+through it land in a folder named after the label, so you can tell who sent what. Send
+links by text or a separate message when you can: a link forwarded to the wrong person can
+upload (never read) until you revoke it.
+
+```bash
+npm run link:list
+npm run link:revoke -- <first 8+ characters of the token>
+npm run link:delete -- <token>
+```
+
+**Access modes** (`ACCESS_MODE` in `wrangler.toml`; change it, commit, push):
+
+| Mode | Who gets in |
+|------|-------------|
+| `link` (default) | Anyone who opens a valid personal link. No password. |
+| `password` | Anyone with the shared password at `/upload`. Links are optional and only label who sent what. |
+| `link+password` | Both a valid personal link and the shared password. `--no-password` on a link exempts that one client. |
+
+Password modes need a password set first: `npm run set-password`.
 
 **Get the files.** Dashboard -> R2 -> `mtzion-client-uploads` -> `uploads/YYYY-MM-DD/<client>/`.
 Click a file to download. Its **custom metadata** shows the uploader's name, company, note,
 and which link they used. Download what you need and delete what you don't; the 90-day rule
 handles the rest.
 
-**Change the password.** `npm run set-password` (or `npm run set-password -- --generate`
-to have a strong one made for you). Takes effect immediately.
+**Change the password** (password modes only). `npm run set-password` (or
+`npm run set-password -- --generate` to have a strong one made for you). Takes effect immediately.
 
 **Watch activity.** Dashboard -> Workers & Pages -> mtzioncapital -> Logs, or live:
 `npm run tail`. Events: `auth_ok`, `auth_failed`, `auth_ratelimited`, `link_rejected`,
@@ -162,7 +170,7 @@ to have a strong one made for you). Takes effect immediately.
 |-----|---------|---------|
 | `MAX_FILE_MB` | 50 | Per-file size cap (keep under 95). |
 | `SESSION_TTL_MIN` | 30 | Minutes a login lasts. |
-| `REQUIRE_CLIENT_LINK` | false | `true` = shared password alone is refused; a personal link is required. |
+| `ACCESS_MODE` | link | `link` (personal URL is the key), `password` (shared password), or `link+password` (both). |
 | `RETENTION_DAYS` | 90 | Shown on the page. The actual deletion is the R2 lifecycle rule created by setup (change both). |
 | `TURNSTILE_SITE_KEY` | empty | Public Turnstile key; empty = Turnstile off. |
 
@@ -170,7 +178,8 @@ Secrets (never in the repo): `UPLOAD_PASSWORD_HASH`, `SESSION_SECRET`, `TURNSTIL
 
 ### Troubleshooting
 
-- Page says **"Almost ready"**: a secret is missing. Run `npm run setup` (or `npm run set-password`).
+- Page says **"Almost ready"**: a secret is missing (`SESSION_SECRET`, or `UPLOAD_PASSWORD_HASH` in a password mode). Run `npm run setup` (or `npm run set-password`).
+- Page says **"A personal upload link is required"**: the visitor opened `/upload` without their `?c=` link. Send them their link (`npm run link:list` shows all of them).
 - Deploy fails mentioning **KV namespace** or `00000000…`: `npm run setup` has not been run, or its `wrangler.toml` change was not pushed.
 - Logins fail with **CPU limit** errors in the logs (free plan): `npm run set-password -- --iterations 50000`, or move to Workers Paid.
 - Turnstile shows an error locally: expected; leave `TURNSTILE_SITE_KEY` empty for local dev.

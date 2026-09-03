@@ -3,7 +3,7 @@
 //
 //   npm run link:create -- --label "Acme HVAC (Bob Smith)"            never expires
 //   npm run link:create -- --label "Acme HVAC" --days 30              expires in 30 days
-//   npm run link:create -- --label "Acme HVAC" --no-password          link alone is enough (no shared password)
+//   npm run link:create -- --label "Acme HVAC" --no-password          (link+password mode only) this link skips the password
 //   npm run link:list
 //   npm run link:revoke -- <token or first 8+ characters>
 //   npm run link:delete -- <token or first 8+ characters>
@@ -73,7 +73,13 @@ switch (command) {
     await kv('put', [`link:${token}`, JSON.stringify(record)]);
     console.log('\n  Created. Send this link to the client:\n');
     console.log(`      ${site}/upload?c=${token}\n`);
-    console.log(`  Label: ${record.label}   Expires: ${record.expiresAt ? record.expiresAt.slice(0, 10) : 'never'}${record.noPassword ? '   No password required' : '   They will also need the shared password'}\n`);
+    const mode = (tomlVar('ACCESS_MODE', 'link') || 'link').toLowerCase();
+    const pwNote = mode === 'link'
+      ? 'No password needed: the link itself is the key. Send it by text or a separate message when you can.'
+      : mode === 'password'
+        ? 'They will also need the shared upload password.'
+        : record.noPassword ? 'No password required for this link.' : 'They will also need the shared upload password.';
+    console.log(`  Label: ${record.label}   Expires: ${record.expiresAt ? record.expiresAt.slice(0, 10) : 'never'}\n  ${pwNote}\n`);
     break;
   }
   case 'list': {

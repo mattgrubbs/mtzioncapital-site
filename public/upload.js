@@ -23,7 +23,31 @@
   function show(name) {
     Object.keys(steps).forEach(function (k) { if (steps[k]) steps[k].hidden = true; });
     if (steps[name]) steps[name].hidden = false;
-    if (name === 'auth') { var pw = $('password'); if (pw) pw.focus(); }
+    if (name === 'auth') {
+      var field = $('password-field');
+      var pw = $('password');
+      if (field && !field.hidden && pw) pw.focus();
+      else if ($('auth-submit')) $('auth-submit').focus();
+    }
+  }
+
+  function linkOnlyMode() {
+    return ((config && config.accessMode) || 'link') === 'link';
+  }
+
+  // Shape the first step to the access mode: a personal link needs no password.
+  function applyMode() {
+    var mode = (config && config.accessMode) || 'link';
+    var linkOnly = mode === 'link';
+    $('password-field').hidden = linkOnly;
+    $('auth-help').hidden = linkOnly;
+    if (linkOnly) {
+      $('auth-title').textContent = 'Your personal upload link';
+      $('auth-intro').textContent = 'This private link was created just for you. Click continue to start uploading.';
+      $('auth-submit').textContent = 'Continue';
+    } else if (mode === 'link+password') {
+      $('auth-intro').textContent = 'Use your personal link together with the password we gave you directly.';
+    }
   }
 
   function showMessage(title, body) {
@@ -85,9 +109,10 @@
     if (ret) ret.textContent = config.retentionDays;
     $('file-input').setAttribute('accept', config.allowedExt.map(function (e) { return '.' + e; }).join(','));
 
+    applyMode();
     api('/session').then(function (s) {
       if (s.res.ok && s.data.ok) { enterUpload(s.data); return; }
-      if (linkToken) $('link-pill').hidden = false;
+      if (linkToken && !linkOnlyMode()) $('link-pill').hidden = false;
       setupTurnstile();
       show('auth');
     });
@@ -125,8 +150,8 @@
   $('auth-form').addEventListener('submit', function (e) {
     e.preventDefault();
     setError('auth-error', '');
-    var pw = $('password').value;
-    if (!pw && !linkToken) { setError('auth-error', 'Please enter the password.'); return; }
+    var pw = linkOnlyMode() ? '' : $('password').value;
+    if (!linkOnlyMode() && !pw && !linkToken) { setError('auth-error', 'Please enter the password.'); return; }
     if (config.turnstileSiteKey && !turnstileToken) {
       setError('auth-error', 'Give the security check a moment to finish, then try again.');
       return;
@@ -286,7 +311,9 @@
       if (expired) {
         show('auth');
         setupTurnstileIfNeeded();
-        setError('auth-error', 'Your session timed out. Enter the password again and your remaining files will still be listed.');
+        setError('auth-error', linkOnlyMode()
+          ? 'Your session timed out. Click Continue to pick up where you left off; your remaining files are still listed.'
+          : 'Your session timed out. Enter the password again and your remaining files will still be listed.');
         return;
       }
       if (sent && !failed) {

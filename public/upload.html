@@ -77,8 +77,8 @@
                   <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
                 </span>
                 <div>
-                  <h2>Enter the upload password</h2>
-                  <p>We gave you this password directly. It is not the same as any account password.</p>
+                  <h2 id="auth-title">Enter the upload password</h2>
+                  <p id="auth-intro">We gave you this password directly. It is not the same as any account password.</p>
                 </div>
               </div>
               <p class="link-pill" id="link-pill" hidden>
@@ -86,7 +86,7 @@
                 Personal upload link recognized
               </p>
               <form id="auth-form" novalidate>
-                <label class="field">
+                <label class="field" id="password-field">
                   <span>Password</span>
                   <input type="password" id="password" name="password" autocomplete="off" autocapitalize="off" spellcheck="false" />
                 </label>
@@ -94,7 +94,7 @@
                 <p class="form-error" id="auth-error" role="alert" hidden></p>
                 <button type="submit" class="btn" id="auth-submit">Continue</button>
               </form>
-              <p class="portal-help">
+              <p class="portal-help" id="auth-help">
                 Don't have the password? Email
                 <a href="mailto:sales@mtzioncapital.com?subject=Upload%20password">sales@mtzioncapital.com</a>
                 and we will send it.
