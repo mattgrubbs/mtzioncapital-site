@@ -46,7 +46,7 @@ step(2, `Auto-delete uploads after ${retentionDays} days`);
 if (args['skip-lifecycle']) note('skipped (--skip-lifecycle)');
 else {
   try {
-    await runWrangler(['r2', 'bucket', 'lifecycle', 'add', BUCKET, '--prefix', 'uploads/', '--expire-days', String(retentionDays), '--name', 'expire-client-uploads', '--force'], { quiet: true });
+    await runWrangler(['r2', 'bucket', 'lifecycle', 'add', BUCKET, 'expire-client-uploads', 'uploads/', '--expire-days', String(retentionDays), '--force'], { quiet: true });
     note('rule added');
   } catch (e) {
     if (/already exists/i.test(e.output || '')) note('rule already exists');
