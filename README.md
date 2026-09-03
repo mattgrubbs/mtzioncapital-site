@@ -18,13 +18,13 @@ serves; server code, scripts, and config sit outside it on purpose.
 | `404.html` | Not-found page |
 | `upload.html` / `upload.js` / `upload.css` | **Secure client document upload** (unlisted; see section below) |
 | `_headers` | Security headers (CSP, HSTS, noindex for the upload page) |
-
-Outside `public/` (never served): `src/worker.js` (the Worker), `scripts/` (operator
-commands: setup, set password, manage client links), `wrangler.toml`, `package.json`.
 | `site.css` | Shared stylesheet — pine + brass + cream palette |
 | `favicon.svg` | Browser-tab icon (mountain mark) |
 | `robots.txt` / `sitemap.xml` | SEO plumbing (archive/ is excluded from crawling) |
 | `archive/` | The previous one-page site, kept for reference |
+
+Outside `public/` (never served): `src/worker.js` (the Worker), `scripts/` (operator
+commands: setup, set password, manage client links), `wrangler.toml`, `package.json`.
 
 ## Hosting — how the live site actually works
 
@@ -80,7 +80,7 @@ there is nothing for them to type and no shared password to leak.
 |-------|--------------|
 | In transit | HTTPS with modern TLS, terminated at Cloudflare's edge. |
 | Access | Default `link` mode: a personal URL per client (`/upload?c=<token>`, a 256-bit random token that cannot be guessed) checked **on the server**, revocable one at a time, with optional expiry. Password modes (optional) use a PBKDF2-SHA256 hash held in a Cloudflare secret with constant-time comparison. |
-| Bots | Cloudflare Turnstile on the password step (once you enable it). |
+| Bots | Cloudflare Turnstile (managed mode) on the Continue step before any upload. |
 | Brute force | 10 login attempts per IP per 10 minutes, then a 429. |
 | Session | 30-minute signed (HMAC-SHA256) cookie, HttpOnly, Secure, SameSite=Strict, scoped to `/api/upload`. |
 | Cross-site abuse | Every POST must come from our own origin and carry a custom header browsers never add cross-site. |
@@ -108,14 +108,14 @@ npm run setup             # creates bucket, KV, retention rule, secrets (asks fo
 git add wrangler.toml && git commit -m "Portal: KV namespace id" && git push
 ```
 
-Cloudflare auto-deploys in a few minutes. Then open `/upload`, enter the password, and
+Cloudflare auto-deploys in a few minutes. Then create a link (`npm run link:create`), open it, and
 send yourself a test PDF. Find it under **Cloudflare dashboard -> R2 -> mtzion-client-uploads**.
 
 Recommended follow-ups:
 
-- **Turnstile** (bot protection): dashboard -> Turnstile -> Add widget (domain
-  `mtzioncapital.com`, mode Managed), then `npm run set-turnstile`, then commit and push
-  `wrangler.toml`.
+- **Turnstile** (bot protection) is enabled (widget `0x4AAAAAAEmLpf81Ou2O-Ydu`, managed mode). To recreate it:
+  `npx wrangler turnstile widget create <name> --domain mtzioncapital.com --domain www.mtzioncapital.com --mode managed`,
+  then `npm run set-turnstile` with the keys it prints, then commit and push `wrangler.toml`.
 - **Two-factor auth on your Cloudflare account** (My Profile -> Authentication).
 - **Workers Paid plan ($5/month)** if you expect steady use. The free plan is fine to start,
   but Paid removes the tight CPU budget and raises the request body limit.
