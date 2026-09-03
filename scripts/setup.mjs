@@ -8,7 +8,7 @@
 // wrangler.toml), the 90-day auto-delete rule, the session-signing secret, and
 // prompts you for the upload password. Turnstile is a separate optional step.
 import {
-  parseArgs, runWrangler, ensureLoggedIn, currentKvId, setKvId, extractJson,
+  parseArgs, runWrangler, ensureLoggedIn, ensureWorkerExists, currentKvId, setKvId, extractJson,
   randomSecret, hashPassword, promptHidden, tomlVar, fail, BUCKET, PLACEHOLDER_KV_ID,
 } from './lib.mjs';
 
@@ -21,6 +21,7 @@ const note = (msg) => console.log(`      ${msg}`);
 
 console.log('\nMt. Zion Capital secure upload portal: setup');
 await ensureLoggedIn();
+await ensureWorkerExists();
 
 // 1. Private R2 bucket
 step(1, `R2 bucket "${BUCKET}"`);

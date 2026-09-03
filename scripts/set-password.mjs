@@ -8,7 +8,7 @@
 //
 // The password itself is never written anywhere. Only a PBKDF2-SHA256 hash is
 // stored, as the Cloudflare secret UPLOAD_PASSWORD_HASH.
-import { parseArgs, promptHidden, hashPassword, generatePassword, runWrangler, ensureLoggedIn, fail } from './lib.mjs';
+import { parseArgs, promptHidden, hashPassword, generatePassword, runWrangler, ensureLoggedIn, ensureWorkerExists, fail } from './lib.mjs';
 
 const args = parseArgs(process.argv.slice(2));
 const iterations = Math.max(10000, parseInt(args.iterations || '100000', 10) || 100000);
@@ -33,6 +33,7 @@ if (args.print) {
 }
 
 await ensureLoggedIn();
+await ensureWorkerExists();
 console.log('\n  Storing the password hash as Cloudflare secret UPLOAD_PASSWORD_HASH ...');
 await runWrangler(['secret', 'put', 'UPLOAD_PASSWORD_HASH'], { input: hash });
 console.log('\n  Done. New logins use the new password immediately. Existing sessions expire on their own.\n');

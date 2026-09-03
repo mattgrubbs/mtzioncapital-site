@@ -76,6 +76,21 @@ export async function ensureLoggedIn() {
   }
 }
 
+/**
+ * Refuse to run secret-changing commands unless the Worker named in wrangler.toml
+ * already exists. Otherwise `wrangler secret put` silently creates a new, unused
+ * Worker and the secrets never reach the live site.
+ */
+export async function ensureWorkerExists() {
+  const name = tomlVar('name', '');
+  const out = await runWrangler(['deployments', 'list', '--name', name], { quiet: true }).catch((e) => e.output || '');
+  if (!name || /does not exist|not found|10007/i.test(out)) {
+    fail(`No Worker named "${name}" exists on this account, so secrets would land on a brand-new,
+      unused Worker instead of the live site. Open the Cloudflare dashboard -> Workers & Pages,
+      find the Worker that serves www.mtzioncapital.com, and put its exact name in wrangler.toml.`);
+  }
+}
+
 // ---------- wrangler.toml helpers ----------
 export function readToml() { return readFileSync(TOML_PATH, 'utf8'); }
 export function writeToml(text) { writeFileSync(TOML_PATH, text); }

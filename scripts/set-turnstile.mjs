@@ -8,7 +8,7 @@
 //
 // The site key is public and goes in wrangler.toml. The secret key is stored as
 // the Cloudflare secret TURNSTILE_SECRET_KEY and never touches the repo.
-import { promptVisible, promptHidden, setTomlVar, runWrangler, ensureLoggedIn, fail } from './lib.mjs';
+import { promptVisible, promptHidden, setTomlVar, runWrangler, ensureLoggedIn, ensureWorkerExists, fail } from './lib.mjs';
 
 const siteKey = await promptVisible('Turnstile Site Key: ');
 if (!/^[0-9A-Za-z_-]{10,}$/.test(siteKey)) fail('That does not look like a Turnstile site key.');
@@ -16,6 +16,7 @@ const secret = await promptHidden('Turnstile Secret Key (hidden): ');
 if (secret.length < 10) fail('That does not look like a Turnstile secret key.');
 
 await ensureLoggedIn();
+await ensureWorkerExists();
 setTomlVar('TURNSTILE_SITE_KEY', siteKey);
 console.log('\n  wrangler.toml updated with the site key (commit and push this change).');
 console.log('  Storing the secret key as Cloudflare secret TURNSTILE_SECRET_KEY ...');

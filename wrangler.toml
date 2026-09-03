@@ -1,4 +1,5 @@
-name = "mtzioncapital"
+# Must match the Worker that serves the site (Cloudflare dashboard -> Workers & Pages).
+name = "mtzioncapital-site"
 main = "src/worker.js"
 compatibility_date = "2026-08-01"
 

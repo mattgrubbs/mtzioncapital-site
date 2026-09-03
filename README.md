@@ -160,7 +160,7 @@ handles the rest.
 **Change the password** (password modes only). `npm run set-password` (or
 `npm run set-password -- --generate` to have a strong one made for you). Takes effect immediately.
 
-**Watch activity.** Dashboard -> Workers & Pages -> mtzioncapital -> Logs, or live:
+**Watch activity.** Dashboard -> Workers & Pages -> mtzioncapital-site -> Logs, or live:
 `npm run tail`. Events: `auth_ok`, `auth_failed`, `auth_ratelimited`, `link_rejected`,
 `upload_ok`, `content_mismatch`, `turnstile_failed`.
 
@@ -184,3 +184,7 @@ Secrets (never in the repo): `UPLOAD_PASSWORD_HASH`, `SESSION_SECRET`, `TURNSTIL
 - Logins fail with **CPU limit** errors in the logs (free plan): `npm run set-password -- --iterations 50000`, or move to Workers Paid.
 - Turnstile shows an error locally: expected; leave `TURNSTILE_SITE_KEY` empty for local dev.
 - Never commit `.dev.vars`. It is gitignored and excluded from the deployed assets.
+- The `name` in `wrangler.toml` must be the Worker that actually serves the site
+  (`mtzioncapital-site`). The scripts refuse to store secrets if that Worker does not exist,
+  because wrangler would otherwise create a new, unused Worker and the live site would never
+  see the secrets.
