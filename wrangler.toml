@@ -29,7 +29,7 @@ SESSION_TTL_MIN = "30"
 # How clients get in: "link" = their personal URL is the key (no password),
 # "password" = shared password only, "link+password" = both.
 ACCESS_MODE = "link"
-TURNSTILE_SITE_KEY = ""
+TURNSTILE_SITE_KEY = "0x4AAAAAAEmLpf81Ou2O-Ydu"
 RETENTION_DAYS = "90"
 
 # Persist request logs in the Cloudflare dashboard (Workers Logs).

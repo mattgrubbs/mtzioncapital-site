@@ -12,3 +12,5 @@ SESSION_SECRET='replace-with-a-long-random-string'
 MAX_FILE_MB='5'
 # "link" (default), "password", or "link+password"
 ACCESS_MODE='link'
+# Keep Turnstile off locally (the production site key only works on the real domain).
+TURNSTILE_SITE_KEY=''

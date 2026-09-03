@@ -134,7 +134,11 @@ async function postAuth(request, env, ctx) {
   const body = await readJson(request);
   if (!body) return json({ ok: false, error: 'bad_request', message: 'Malformed request.' }, 400);
 
-  if (env.TURNSTILE_SECRET_KEY) {
+  // Enforce Turnstile only once BOTH halves are configured (the public site key
+  // reaches production via a git deploy, the secret via `wrangler secret put`,
+  // and they can land minutes apart). Enforcing on the secret alone would lock
+  // everyone out until the page can render the widget.
+  if (env.TURNSTILE_SECRET_KEY && env.TURNSTILE_SITE_KEY) {
     if (!(await verifyTurnstile(env, body.turnstile, ip))) {
       log('turnstile_failed', { iph });
       return json({ ok: false, error: 'turnstile_failed', message: 'We could not confirm you are a person. Please reload the page and try again.' }, 400);

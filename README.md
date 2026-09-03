@@ -182,7 +182,10 @@ Secrets (never in the repo): `UPLOAD_PASSWORD_HASH`, `SESSION_SECRET`, `TURNSTIL
 - Page says **"A personal upload link is required"**: the visitor opened `/upload` without their `?c=` link. Send them their link (`npm run link:list` shows all of them).
 - Deploy fails mentioning **KV namespace** or `00000000…`: `npm run setup` has not been run, or its `wrangler.toml` change was not pushed.
 - Logins fail with **CPU limit** errors in the logs (free plan): `npm run set-password -- --iterations 50000`, or move to Workers Paid.
-- Turnstile shows an error locally: expected; leave `TURNSTILE_SITE_KEY` empty for local dev.
+- Turnstile shows an error locally: expected. Keep `TURNSTILE_SITE_KEY=''` in `.dev.vars` so the
+  widget stays off in local dev (the production site key only works on the real domain).
+- Turnstile is enforced only when both the site key (in `wrangler.toml`) and the secret
+  (`TURNSTILE_SECRET_KEY`) are in place, so setting one before the other never locks anyone out.
 - Never commit `.dev.vars`. It is gitignored and excluded from the deployed assets.
 - The `name` in `wrangler.toml` must be the Worker that actually serves the site
   (`mtzioncapital-site`). The scripts refuse to store secrets if that Worker does not exist,
