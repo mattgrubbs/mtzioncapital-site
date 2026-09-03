@@ -110,7 +110,7 @@ function getConfig(env) {
 // ---------- GET /api/upload/session ----------
 async function getSession(request, env) {
   const s = await readSession(request, env);
-  if (!s) return json({ ok: false, error: 'no_session' }, 401);
+  if (!s) return json({ ok: false, error: 'no_session' }); // 200: a normal state, keeps the browser console clean
   return json({ ok: true, attribution: s.att, label: s.lbl, expiresAt: s.exp });
 }
 

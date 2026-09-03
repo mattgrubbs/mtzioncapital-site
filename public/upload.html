@@ -90,7 +90,8 @@
                   <span>Password</span>
                   <input type="password" id="password" name="password" autocomplete="off" autocapitalize="off" spellcheck="false" />
                 </label>
-                <div id="turnstile" class="turnstile" hidden></div>
+                <!-- Do not give this element id="turnstile": element ids become window globals and would shadow Cloudflare's Turnstile API. -->
+                <div id="turnstile-widget" class="turnstile" hidden></div>
                 <p class="form-error" id="auth-error" role="alert" hidden></p>
                 <button type="submit" class="btn" id="auth-submit">Continue</button>
               </form>

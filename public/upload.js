@@ -121,7 +121,7 @@
   // ---------- Turnstile (only if the owner configured a site key) ----------
   function setupTurnstile() {
     if (!config.turnstileSiteKey) return;
-    var container = $('turnstile');
+    var container = $('turnstile-widget');
     container.hidden = false;
     window.__mzcTurnstileReady = function () {
       turnstileWidgetId = window.turnstile.render(container, {
