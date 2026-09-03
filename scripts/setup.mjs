@@ -29,6 +29,15 @@ try {
   note('created');
 } catch (e) {
   if (/already exists|already own/i.test(e.output || '')) note('already exists, keeping it');
+  else if (/enable R2|10042/i.test(e.output || '')) {
+    fail(`R2 Object Storage is not enabled on your Cloudflare account yet (a one-time step).
+      1. Open https://dash.cloudflare.com and pick your account.
+      2. In the left menu choose "R2 Object Storage", then "Get started" / "Enable R2".
+      3. Accept the terms. Cloudflare asks for a payment method on file even for the free
+         tier (10 GB of storage and millions of requests per month at $0; you only pay if
+         you exceed that, which a handful of client documents will not).
+      4. Come back here and run:  npm run setup`);
+  }
   else { console.log(e.output); fail('Could not create the R2 bucket. See the message above.'); }
 }
 
@@ -56,7 +65,7 @@ else {
   let out = '';
   try { out = await runWrangler(['kv', 'namespace', 'create', 'PORTAL_KV'], { quiet: true }); }
   catch (e) { out = e.output || ''; }
-  let m = out.match(/id\s*=\s*"([0-9a-f]{32})"/);
+  let m = out.match(/"?id"?\s*[=:]\s*"([0-9a-f]{32})"/);
   if (!m) {
     // Probably exists already: find it by title.
     const listOut = await runWrangler(['kv', 'namespace', 'list'], { quiet: true }).catch((e) => e.output || '');
