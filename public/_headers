@@ -1,0 +1,16 @@
+# Security headers for the static site (applied by Cloudflare at the edge).
+# Responses from the Worker (/api/*) set their own headers in src/worker.js.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+
+# The upload page: strict CSP (only our own scripts + Cloudflare Turnstile),
+# never cached, never indexed.
+/upload
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store

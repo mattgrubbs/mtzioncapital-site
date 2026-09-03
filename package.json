@@ -1,0 +1,21 @@
+{
+  "name": "mtzioncapital-site",
+  "private": true,
+  "type": "module",
+  "description": "Mt. Zion Capital website + secure client upload portal (Cloudflare Workers, R2, KV)",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "setup": "node scripts/setup.mjs",
+    "set-password": "node scripts/set-password.mjs",
+    "set-turnstile": "node scripts/set-turnstile.mjs",
+    "link:create": "node scripts/link.mjs create",
+    "link:list": "node scripts/link.mjs list",
+    "link:revoke": "node scripts/link.mjs revoke",
+    "link:delete": "node scripts/link.mjs delete"
+  },
+  "devDependencies": {
+    "wrangler": "^4.128.0"
+  }
+}

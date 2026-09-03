@@ -1,5 +1,39 @@
 name = "mtzioncapital"
+main = "src/worker.js"
 compatibility_date = "2026-08-01"
 
+# Only files in public/ are ever served. Server code (src/), scripts/, config and
+# local secrets live outside it, so they can never be exposed by the static host.
 [assets]
-directory = "."
+directory = "public"
+binding = "ASSETS"
+not_found_handling = "404-page"
+run_worker_first = ["/api/*"]
+
+# Private bucket for client uploads. Never enable public access on this bucket.
+[[r2_buckets]]
+binding = "UPLOADS"
+bucket_name = "mtzion-client-uploads"
+
+# KV holds per-client upload links and rate-limit counters.
+# `npm run setup` creates the namespace and replaces the placeholder id below.
+[[kv_namespaces]]
+binding = "PORTAL_KV"
+id = "00000000000000000000000000000000"
+
+[vars]
+PUBLIC_SITE_URL = "https://www.mtzioncapital.com"
+MAX_FILE_MB = "50"
+SESSION_TTL_MIN = "30"
+REQUIRE_CLIENT_LINK = "false"
+TURNSTILE_SITE_KEY = ""
+RETENTION_DAYS = "90"
+
+# Persist request logs in the Cloudflare dashboard (Workers Logs).
+[observability]
+enabled = true
+
+# Secrets are NOT stored in this file. Set them with the helper scripts:
+#   UPLOAD_PASSWORD_HASH  -> npm run set-password
+#   SESSION_SECRET        -> created automatically by npm run setup
+#   TURNSTILE_SECRET_KEY  -> npm run set-turnstile   (optional, recommended)

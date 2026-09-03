@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Secure Document Upload | Mt. Zion Capital</title>
+  <meta name="description" content="A private, encrypted way to send financial documents to Mt. Zion Capital instead of emailing them." />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#1f3d34" />
+  <link rel="canonical" href="https://www.mtzioncapital.com/upload" />
+
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="site.css" />
+  <link rel="stylesheet" href="upload.css" />
+  <script src="upload.js" defer></script>
+</head>
+<body>
+  <header class="header">
+    <div class="container nav">
+      <a href="index.html" class="logo" aria-label="Mt. Zion Capital home">
+        <svg class="logo-mark" viewBox="0 0 40 32" aria-hidden="true" focusable="false">
+          <path d="M2 30 L14 8 L21 20 L26 12 L38 30 Z" fill="currentColor" />
+          <path d="M14 8 L9.5 16.2 L18.5 16.2 Z" fill="#faf7f2" opacity="0.92" />
+        </svg>
+        <span>Mt.&nbsp;Zion&nbsp;Capital</span>
+      </a>
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true" />
+      <label for="nav-toggle" class="nav-toggle-label" aria-label="Menu">
+        <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </label>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="careers.html">Careers</a>
+        <a href="contact.html" class="nav-cta">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="subhero">
+      <div class="container subhero-inner">
+        <p class="eyebrow">Secure Document Upload</p>
+        <h1>Send us documents securely.</h1>
+        <p class="subhero-sub">
+          A private, encrypted way to share financial documents with us instead of
+          attaching them to an email.
+        </p>
+      </div>
+      <svg class="hero-range" viewBox="0 0 1440 160" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <path d="M0 160 L0 96 L220 40 L400 104 L560 24 L760 112 L960 48 L1160 108 L1320 56 L1440 100 L1440 160 Z" />
+      </svg>
+    </section>
+
+    <section class="section portal-section">
+      <div class="container">
+        <noscript>
+          <div class="portal-card">
+            <h2>JavaScript is required</h2>
+            <p>This secure upload page needs JavaScript turned on. If you cannot enable it, email us at
+              <a href="mailto:sales@mtzioncapital.com">sales@mtzioncapital.com</a> and we will arrange another way.</p>
+          </div>
+        </noscript>
+
+        <div class="portal">
+          <div class="portal-main">
+
+            <!-- Step 1: password -->
+            <div class="portal-card" id="step-auth" hidden>
+              <div class="portal-head">
+                <span class="card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                </span>
+                <div>
+                  <h2>Enter the upload password</h2>
+                  <p>We gave you this password directly. It is not the same as any account password.</p>
+                </div>
+              </div>
+              <p class="link-pill" id="link-pill" hidden>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M10 14a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1 1"/><path d="M14 10a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1-1"/></svg>
+                Personal upload link recognized
+              </p>
+              <form id="auth-form" novalidate>
+                <label class="field">
+                  <span>Password</span>
+                  <input type="password" id="password" name="password" autocomplete="off" autocapitalize="off" spellcheck="false" />
+                </label>
+                <div id="turnstile" class="turnstile" hidden></div>
+                <p class="form-error" id="auth-error" role="alert" hidden></p>
+                <button type="submit" class="btn" id="auth-submit">Continue</button>
+              </form>
+              <p class="portal-help">
+                Don't have the password? Email
+                <a href="mailto:sales@mtzioncapital.com?subject=Upload%20password">sales@mtzioncapital.com</a>
+                and we will send it.
+              </p>
+            </div>
+
+            <!-- Step 2: upload -->
+            <div class="portal-card" id="step-upload" hidden>
+              <div class="portal-head">
+                <span class="card-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+                </span>
+                <div>
+                  <h2>Upload your documents</h2>
+                  <p>Files go straight into our private, encrypted storage. Nothing is sent by email.</p>
+                  <p class="upload-who" id="upload-who" hidden></p>
+                </div>
+              </div>
+              <form id="upload-form" novalidate>
+                <div class="field-row">
+                  <label class="field">
+                    <span>Your name</span>
+                    <input type="text" id="uploader-name" maxlength="120" autocomplete="name" />
+                  </label>
+                  <label class="field">
+                    <span>Business or company <em>(optional)</em></span>
+                    <input type="text" id="uploader-company" maxlength="120" autocomplete="organization" />
+                  </label>
+                </div>
+                <label class="field">
+                  <span>Note to us <em>(optional)</em></span>
+                  <textarea id="uploader-note" rows="2" maxlength="300" placeholder="For example: 2024 and 2025 tax returns, plus year-to-date P&amp;L"></textarea>
+                </label>
+
+                <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-controls="file-input" aria-label="Choose files or drag and drop them here">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 16V8"/><path d="m8.5 11.5 3.5-3.5 3.5 3.5"/><path d="M20 16.6A4.5 4.5 0 0 0 18 8h-1.3A7 7 0 1 0 5 15.7"/></svg>
+                  <p><strong>Drag files here</strong> or <span class="linkish">browse your device</span></p>
+                  <p class="dropzone-hint" id="dropzone-hint">PDF, photos, Word, Excel, CSV or ZIP.</p>
+                  <input type="file" id="file-input" multiple hidden />
+                </div>
+
+                <ul class="file-list" id="file-list" aria-live="polite" aria-label="Selected files"></ul>
+                <p class="form-error" id="upload-error" role="alert" hidden></p>
+
+                <div class="portal-actions">
+                  <button type="submit" class="btn" id="upload-submit" disabled>Upload files</button>
+                  <button type="button" class="btn-text" id="finish-btn">I'm finished</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Done -->
+            <div class="portal-card portal-done" id="step-done" hidden>
+              <span class="done-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg>
+              </span>
+              <h2>Thank you. We received <span id="done-count">your files</span>.</h2>
+              <p>They are stored securely and we will be in touch. You can close this page, or add more.</p>
+              <div class="portal-actions center">
+                <button type="button" class="btn" id="more-btn">Upload more</button>
+                <button type="button" class="btn-text" id="done-finish">I'm finished</button>
+              </div>
+            </div>
+
+            <!-- Message (not configured, link required, unavailable) -->
+            <div class="portal-card" id="step-message" hidden>
+              <h2 id="message-title"></h2>
+              <p id="message-body"></p>
+            </div>
+
+          </div>
+
+          <aside class="portal-side" aria-label="How your files are protected">
+            <h3>How your files are protected</h3>
+            <ul class="security-list">
+              <li>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                <span>Encrypted in transit with modern TLS, the same protection your bank's website uses.</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3 4 6v6c0 5 3.4 8.4 8 9 4.6-.6 8-4 8-9V6z"/></svg>
+                <span>Stored encrypted at rest in a private location that is never publicly reachable.</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+                <span>Only Mt. Zion Capital can open them, behind our secured account sign-in.</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                <span>Automatically deleted after <span id="retention-days">90</span> days.</span>
+              </li>
+              <li>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/><path d="M4 20 20 4"/></svg>
+                <span>Nothing is ever attached to an email.</span>
+              </li>
+            </ul>
+            <p class="portal-side-note">
+              Questions? Email <a href="mailto:sales@mtzioncapital.com">sales@mtzioncapital.com</a>
+              or use the number on our <a href="contact.html">contact page</a>.
+            </p>
+          </aside>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <p class="footer-brand">
+            <svg class="logo-mark" viewBox="0 0 40 32" aria-hidden="true" focusable="false">
+              <path d="M2 30 L14 8 L21 20 L26 12 L38 30 Z" fill="currentColor" />
+              <path d="M14 8 L9.5 16.2 L18.5 16.2 Z" fill="#17302a" opacity="0.92" />
+            </svg>
+            <span>Mt. Zion Capital LLC</span>
+          </p>
+          <p class="footer-verse">
+            &ldquo;Those who trust in the <span class="smallcaps">Lord</span> are like Mount Zion,
+            which cannot be moved, but abides forever.&rdquo;
+            <span class="footer-cite">Psalm 125:1</span>
+          </p>
+        </div>
+        <div>
+          <h4>Explore</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About us</a></li>
+            <li><a href="careers.html">Careers</a></li>
+            <li><a href="contact.html">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Contact</h4>
+          <ul class="footer-contact">
+            <li><a href="mailto:sales@mtzioncapital.com">sales@mtzioncapital.com</a></li>
+            <li>Union, Kentucky</li>
+            <li>Serving Northern Kentucky &amp; Greater Cincinnati</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        &copy; <span id="year">2026</span> Mt. Zion Capital LLC &middot; Union, KY
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

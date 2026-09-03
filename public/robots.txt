@@ -1,5 +1,7 @@
 User-agent: *
 Allow: /
 Disallow: /archive/
+Disallow: /upload
+Disallow: /api/
 
 Sitemap: https://www.mtzioncapital.com/sitemap.xml

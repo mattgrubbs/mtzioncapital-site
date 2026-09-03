@@ -1,0 +1,12 @@
+# Local development only. Copy to `.dev.vars` (which is gitignored) to run `npm run dev`.
+# Production secrets are set with `npm run setup` / `npm run set-password`, never in files.
+
+# Hash of a throwaway local password. Generate one with:
+#   npm run set-password -- --print
+UPLOAD_PASSWORD_HASH='pbkdf2$sha256$100000$REPLACE_WITH_SALT$REPLACE_WITH_HASH'
+
+# Any long random string (local sessions only).
+SESSION_SECRET='replace-with-a-long-random-string'
+
+# Optional overrides for local testing.
+MAX_FILE_MB='5'
