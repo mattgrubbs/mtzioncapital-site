@@ -13,12 +13,13 @@ serves; server code, scripts, and config sit outside it on purpose.
 |------|---------|
 | `index.html` | Home — hero, who we are, what we do, seller process, values, contact CTA |
 | `about.html` | About us — story, the name (Psalm 125:1), founder bio |
-| `portfolio.html` | Portfolio (menu tab): GG LLC, Psalm 23 Realty and Government Contracting, each with a short description (GG LLC and Psalm 23 show "Website coming soon"; Government Contracting links to government.html) |
-| `government.html` | Government contracting (linked from Portfolio and the home page band): capability statement content for program offices and primes (UEI, CAGE, NAICS, PSC) |
+| `portfolio.html` | Portfolio (menu tab): GG LLC, Psalm 23 Realty and Government Contracting, each with a short description (GG LLC and Psalm 23 show "Website coming soon"; Government Contracting links to gov.html) |
+| `gov.html` | Government contracting (linked from Portfolio and the home page band): capability statement content for program offices and primes (UEI, CAGE, NAICS, PSC) |
 | `careers.html` | Careers — open roles (currently the confidential GM search) |
 | `contact.html` | Contact — email, phone (spam-protected), in-person |
 | `404.html` | Not-found page |
 | `upload.html` / `upload.js` / `upload.css` | **Secure client document upload** (unlisted; see section below) |
+| `_redirects` | Redirects the old /government address to /gov (the address printed on the capability statement) |
 | `_headers` | Security headers (CSP, HSTS, noindex for the upload page) |
 | `site.css` | Shared stylesheet — pine + brass + cream palette |
 | `favicon.svg` | Browser-tab icon (mountain mark) |
