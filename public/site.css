@@ -713,3 +713,12 @@ a:focus-visible, .btn:focus-visible, button:focus-visible, .nav-toggle-label:foc
 @media (max-width: 780px) {
   .founder-photo { margin: 0 auto; }
 }
+
+/* Whole card is clickable when it has a link (stretched link) */
+.portfolio-cards .card { position: relative; }
+.portfolio-cards .card-linked { cursor: pointer; }
+.portfolio-cards .card-linked .portfolio-link a::after {
+  content: ""; position: absolute; inset: 0; border-radius: 14px;
+}
+.portfolio-cards .card-linked:focus-within { outline: 2px solid var(--brass); outline-offset: 3px; }
+.portfolio-cards .card:not(.card-linked):hover { transform: none; box-shadow: 0 2px 10px rgba(31, 61, 52, 0.05); }
