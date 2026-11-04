@@ -704,3 +704,12 @@ a:focus-visible, .btn:focus-visible, button:focus-visible, .nav-toggle-label:foc
   display: block; width: 128px; height: 128px; border-radius: 50%; object-fit: cover;
   margin: 4px auto 22px; box-shadow: 0 8px 22px rgba(31, 61, 52, 0.14);
 }
+
+/* Founder photo on the About page (replaces the MG initials circle) */
+.founder-photo {
+  display: block; width: 128px; height: 128px; border-radius: 50%; object-fit: cover;
+  box-shadow: 0 8px 22px rgba(31, 61, 52, 0.14);
+}
+@media (max-width: 780px) {
+  .founder-photo { margin: 0 auto; }
+}
