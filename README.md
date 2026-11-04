@@ -47,7 +47,7 @@ redirects to `mtzioncapital.com/careers`. Share the extensionless form.
   publish a role, replace that panel with an `<article class="job-card">` block
   (the format is in git history) and update the page's `meta description`.
 - **Founder bio** — `about.html`, the `founder` section.
-- **Contact email** — search all pages for `sales@mtzioncapital.com`.
+- **Contact email** — search all pages for `matthew.grubbs@mtzioncapital.com`.
 - **Phone number** — `contact.html` only. It's stored base64-encoded so bots can't
   harvest it. To change it:
   ```bash

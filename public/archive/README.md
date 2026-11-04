@@ -19,7 +19,7 @@ Everything you'll want to change is plain text in `index.html`:
 
 - **Headline / intro** — the `<section id="home">` block near the top.
 - **About / What we do / Values** — the sections below it.
-- **Contact email** — search the file for `sales@mtzioncapital.com` and replace (appears in the "Email us" button and the line beneath it).
+- **Contact email** — search the file for `matthew.grubbs@mtzioncapital.com` and replace (appears in the "Email us" button and the line beneath it).
 - **Location** — search for `Union, KY` / `Union, Kentucky`.
 - **Footer verse** — the `footer-verse` line (remove it if you'd rather not have it).
 

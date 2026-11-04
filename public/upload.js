@@ -89,18 +89,18 @@
     }).catch(function () {
       showMessage(
         'This page is temporarily unavailable',
-        'The secure upload service could not be reached. Please make sure you are at www.mtzioncapital.com/upload, or email us at sales@mtzioncapital.com.'
+        'The secure upload service could not be reached. Please make sure you are at www.mtzioncapital.com/upload, or email us at matthew.grubbs@mtzioncapital.com.'
       );
     });
   }
 
   function afterConfig() {
     if (!config.ready) {
-      showMessage('Almost ready', 'The secure upload portal is not fully set up yet. Please email sales@mtzioncapital.com and we will arrange another way to receive your documents.');
+      showMessage('Almost ready', 'The secure upload portal is not fully set up yet. Please email matthew.grubbs@mtzioncapital.com and we will arrange another way to receive your documents.');
       return;
     }
     if (config.requireClientLink && !linkToken) {
-      showMessage('A personal upload link is required', 'For your security, uploads need the personal link we sent you. If you need a new one, email sales@mtzioncapital.com.');
+      showMessage('A personal upload link is required', 'For your security, uploads need the personal link we sent you. If you need a new one, email matthew.grubbs@mtzioncapital.com.');
       return;
     }
 
