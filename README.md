@@ -13,6 +13,7 @@ serves; server code, scripts, and config sit outside it on purpose.
 |------|---------|
 | `index.html` | Home — hero, who we are, what we do, seller process, values, contact CTA |
 | `about.html` | About us — story, the name (Psalm 125:1), founder bio |
+| `government.html` | Government contracting: capability statement content for program offices and primes (UEI, CAGE, NAICS, PSC) |
 | `careers.html` | Careers — open roles (currently the confidential GM search) |
 | `contact.html` | Contact — email, phone (spam-protected), in-person |
 | `404.html` | Not-found page |

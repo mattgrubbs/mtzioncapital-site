@@ -659,3 +659,34 @@ a:focus-visible, .btn:focus-visible, button:focus-visible, .nav-toggle-label:foc
   .footer-brand { justify-content: center; }
   .footer-verse { margin: 0 auto; }
 }
+
+/* ---------- Government contracting ---------- */
+.gov-band { padding: 36px 0 8px; }
+.gov-panel {
+  display: flex; align-items: center; justify-content: space-between; gap: 28px;
+  background: var(--white); border: 1px solid var(--line); border-left: 5px solid var(--brass);
+  border-radius: 10px; padding: 26px 30px; box-shadow: 0 10px 26px rgba(31, 61, 52, 0.08);
+}
+.gov-title { font-family: var(--serif); font-weight: 600; color: var(--pine); font-size: 1.55rem; line-height: 1.25; margin: 4px 0 8px; }
+.gov-sub { color: var(--ink); font-size: 1.02rem; max-width: 620px; }
+.gov-ids { color: var(--muted); font-size: 0.92rem; margin-top: 8px; letter-spacing: 0.02em; }
+.gov-btn { white-space: nowrap; flex-shrink: 0; }
+
+.gov-list {
+  list-style: none; max-width: 760px; margin: 36px auto 0;
+  display: grid; gap: 12px;
+}
+.gov-list li {
+  padding: 14px 20px; border-left: 3px solid var(--brass);
+  background: rgba(255, 255, 255, 0.72); border-radius: 0 10px 10px 0;
+  color: var(--ink); font-size: 1.04rem;
+}
+.gov-data .card:hover { transform: none; }
+.gov-codes { list-style: none; display: grid; gap: 8px; }
+.gov-codes li { color: var(--muted); font-size: 0.98rem; line-height: 1.5; }
+.gov-codes strong { color: var(--pine); font-weight: 700; margin-right: 6px; }
+.gov-years { color: var(--brass); font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; }
+
+@media (max-width: 760px) {
+  .gov-panel { flex-direction: column; align-items: flex-start; padding: 22px; }
+}
