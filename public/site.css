@@ -690,3 +690,12 @@ a:focus-visible, .btn:focus-visible, button:focus-visible, .nav-toggle-label:foc
 @media (max-width: 760px) {
   .gov-panel { flex-direction: column; align-items: flex-start; padding: 22px; }
 }
+
+/* ---------- Portfolio ---------- */
+.portfolio-cards { margin-top: 0; }
+.portfolio-cards .card { display: flex; flex-direction: column; }
+.portfolio-cards .card p { flex-grow: 1; }
+.portfolio-cards .card p.portfolio-link { flex-grow: 0; margin-top: 18px; font-weight: 600; font-size: 0.98rem; }
+.portfolio-link a { color: var(--pine); text-decoration: none; border-bottom: 1px solid var(--brass); }
+.portfolio-link a:hover { border-bottom-width: 2px; }
+.portfolio-link-muted { color: var(--muted); font-style: italic; font-weight: 500 !important; }
