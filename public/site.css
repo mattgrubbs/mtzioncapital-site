@@ -721,4 +721,3 @@ a:focus-visible, .btn:focus-visible, button:focus-visible, .nav-toggle-label:foc
   content: ""; position: absolute; inset: 0; border-radius: 14px;
 }
 .portfolio-cards .card-linked:focus-within { outline: 2px solid var(--brass); outline-offset: 3px; }
-.portfolio-cards .card:not(.card-linked):hover { transform: none; box-shadow: 0 2px 10px rgba(31, 61, 52, 0.05); }
