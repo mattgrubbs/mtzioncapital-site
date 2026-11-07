@@ -62,7 +62,7 @@ const TYPES = {
 const SCAN_LINKS = { '/c': 'card', '/cs': 'capability-statement' };
 const SCAN_TARGET = '/gov';
 const SCAN_RETENTION_DAYS = 400;          // about 13 months; matches the privacy page
-const SCAN_DEDUPE_SECONDS = 600;          // the same visitor re-scanning within 10 minutes is logged once
+// Every scan is stored and counted, repeats included (Matthew 2026-11-07: no dedupe).
 
 export default {
   async fetch(request, env, ctx) {
@@ -507,7 +507,8 @@ function errMsg(err) { return String((err && err.message) || err); }
 // organization), a short device/browser summary, the browser language, the referring site if any, and a keyed hash
 // of the IP (to count repeat visitors). The IP itself is never stored. The whole entry rides in the KV key's metadata
 // (under 1 KB) so `npm run scans` can list everything in one call. Bots and link previews are logged but flagged, and
-// requests with ?test are flagged as tests so they can be left out of the report.
+// requests with ?test are flagged as tests so they can be left out of the report. Every scan is stored, including
+// repeats from the same person or network (no dedupe, at Matthew's request); `vid` lets the report tell them apart.
 async function scanRedirect(request, env, ctx, url, src) {
   const target = `${url.origin}${SCAN_TARGET}`;
   const headers = { Location: target, 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex', 'Referrer-Policy': 'no-referrer' };
@@ -541,11 +542,6 @@ async function scanRedirect(request, env, ctx, url, src) {
 }
 
 async function storeScan(env, event) {
-  // Dedupe in the edge cache (no KV writes) so one person re-scanning, or a page refresh, is one entry.
-  const cache = caches.default;
-  const seenKey = new Request(`https://scan-dedupe.invalid/${event.src}/${event.vid}`);
-  if (await cache.match(seenKey)) return;
-  await cache.put(seenKey, new Response('1', { headers: { 'Cache-Control': `max-age=${SCAN_DEDUPE_SECONDS}` } }));
   const rand = hex(crypto.getRandomValues(new Uint8Array(4)));
   const meta = {};
   for (const [k, v] of Object.entries(event)) if (v !== undefined && v !== '') meta[k] = v;

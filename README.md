@@ -89,8 +89,9 @@ What one scan records (KV key `scan:<time>:<random>`, all fields in the key's me
 piece, country / region / city / time zone, ASN and network owner name (a company or agency on office Wi-Fi, a
 mobile carrier on cellular), a device/browser summary, browser language, referring site (usually none for a QR scan),
 the user agent, and `vid` = a keyed one-way hash of the IP (counts repeat visitors; the IP itself is never stored).
-No cookies. The same visitor scanning the same piece again within 10 minutes is stored once (deduped in the edge
-cache, so repeats cost no KV writes). Bots and link previews are stored with `bot: true`; `?test` marks a test scan.
+No cookies. Every scan is stored and counted, repeats included (no dedupe, Matthew 2026-11-07); the report's
+"Different visitors" line uses `vid` to tell people apart. Bots and link previews are stored with `bot: true`;
+`?test` marks a test scan.
 Each scan is also written to Workers Logs as event `qr_scan`. Names and emails are never known; the privacy page
 explains all of this.
 
@@ -103,8 +104,7 @@ npm run scans -- --days 30         # last 30 days only; --all includes bots and 
 ```
 
 The raw entries are also visible in the Cloudflare dashboard: Workers & Pages > KV > the PORTAL_KV namespace, keys
-starting `scan:`. Free-plan KV allows 1,000 writes a day, shared with the upload portal; deduping keeps scans well
-under that.
+starting `scan:`. Free-plan KV allows 1,000 writes a day, shared with the upload portal (each scan is one write).
 
 ---
 
