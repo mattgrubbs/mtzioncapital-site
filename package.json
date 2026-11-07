@@ -14,7 +14,8 @@
     "link:list": "node scripts/link.mjs list",
     "link:update": "node scripts/link.mjs update",
     "link:revoke": "node scripts/link.mjs revoke",
-    "link:delete": "node scripts/link.mjs delete"
+    "link:delete": "node scripts/link.mjs delete",
+    "scans": "node scripts/scans.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.128.0"

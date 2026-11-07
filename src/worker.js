@@ -1,7 +1,7 @@
 /**
  * Mt. Zion Capital — secure client document upload (Cloudflare Worker)
  *
- * Handles /api/upload/* on the server. Every other request falls through to the
+ * Handles /api/upload/* and the QR scan links (/c, /cs) on the server. Every other request falls through to the
  * static site (wrangler.toml [assets]).
  *
  * Security model (details in README, "Secure client upload portal"):
@@ -56,9 +56,21 @@ const TYPES = {
   zip:  { mime: 'application/zip',  check: isZIP },
 };
 
+// ---------- QR scan links on printed pieces (Matthew 2026-11-07) ----------
+// Each printed piece carries its own short link. A scan is logged (no IP stored, no cookies) and the visitor is sent
+// straight on to /gov. The paths must also be listed in wrangler.toml [assets] run_worker_first.
+const SCAN_LINKS = { '/c': 'card', '/cs': 'capability-statement' };
+const SCAN_TARGET = '/gov';
+const SCAN_RETENTION_DAYS = 400;          // about 13 months; matches the privacy page
+const SCAN_DEDUPE_SECONDS = 600;          // the same visitor re-scanning within 10 minutes is logged once
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    const scanSrc = SCAN_LINKS[url.pathname.toLowerCase().replace(/\/+$/, '')];
+    if (scanSrc && (request.method === 'GET' || request.method === 'HEAD')) {
+      return scanRedirect(request, env, ctx, url, scanSrc);
+    }
     if (url.pathname.startsWith('/api/upload/')) {
       try {
         return await handleApi(request, env, ctx, url);
@@ -488,6 +500,79 @@ function b64uDecode(str) {
 function bytesToString(bytes) { return new TextDecoder().decode(bytes); }
 function safeJson(text) { try { return JSON.parse(text); } catch { return null; } }
 function errMsg(err) { return String((err && err.message) || err); }
+
+// ---------- QR scan logging ----------
+// Records one small entry per scan in KV, then redirects to /gov. What is kept: time, which printed piece, the
+// approximate place and network owner Cloudflare derives from the connection (country, region, city, ASN and its
+// organization), a short device/browser summary, the browser language, the referring site if any, and a keyed hash
+// of the IP (to count repeat visitors). The IP itself is never stored. The whole entry rides in the KV key's metadata
+// (under 1 KB) so `npm run scans` can list everything in one call. Bots and link previews are logged but flagged, and
+// requests with ?test are flagged as tests so they can be left out of the report.
+async function scanRedirect(request, env, ctx, url, src) {
+  const target = `${url.origin}${SCAN_TARGET}`;
+  const headers = { Location: target, 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex', 'Referrer-Policy': 'no-referrer' };
+  try {
+    const cf = request.cf || {};
+    const ua = request.headers.get('User-Agent') || '';
+    const vid = await ipHash(clientIp(request), env.SESSION_SECRET || 'mzc-scan');
+    const event = {
+      t: new Date().toISOString(),
+      src,
+      test: url.searchParams.has('test') || undefined,
+      bot: isBot(ua) || undefined,
+      vid,
+      country: cf.country || '',
+      region: cf.region || '',
+      city: cf.city || '',
+      tz: cf.timezone || '',
+      asn: cf.asn || '',
+      org: String(cf.asOrganization || '').slice(0, 80),
+      device: deviceSummary(ua),
+      lang: (request.headers.get('Accept-Language') || '').split(',')[0].slice(0, 20),
+      ref: refOrigin(request.headers.get('Referer')),
+      ua: ua.slice(0, 200),
+    };
+    log('qr_scan', event);
+    if (request.method === 'GET' && env.PORTAL_KV) ctx.waitUntil(storeScan(env, event));
+  } catch (err) {
+    log('qr_scan_error', { src, message: errMsg(err) });   // never block the visitor
+  }
+  return new Response(null, { status: 302, headers });
+}
+
+async function storeScan(env, event) {
+  // Dedupe in the edge cache (no KV writes) so one person re-scanning, or a page refresh, is one entry.
+  const cache = caches.default;
+  const seenKey = new Request(`https://scan-dedupe.invalid/${event.src}/${event.vid}`);
+  if (await cache.match(seenKey)) return;
+  await cache.put(seenKey, new Response('1', { headers: { 'Cache-Control': `max-age=${SCAN_DEDUPE_SECONDS}` } }));
+  const rand = hex(crypto.getRandomValues(new Uint8Array(4)));
+  const meta = {};
+  for (const [k, v] of Object.entries(event)) if (v !== undefined && v !== '') meta[k] = v;
+  while (JSON.stringify(meta).length > 1000 && meta.ua) meta.ua = meta.ua.slice(0, meta.ua.length - 40);
+  await env.PORTAL_KV.put(`scan:${event.t}:${rand}`, '', {
+    metadata: meta,
+    expirationTtl: SCAN_RETENTION_DAYS * 86400,
+  });
+}
+
+function isBot(ua) {
+  return /bot|crawl|spider|slurp|preview|facebookexternalhit|embedly|whatsapp|telegram|discord|skype|curl|wget|python|httpclient|headless/i.test(ua);
+}
+
+function deviceSummary(ua) {
+  const os = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) ? 'iPad' : /Android/.test(ua) ? 'Android'
+    : /Windows/.test(ua) ? 'Windows' : /Macintosh|Mac OS X/.test(ua) ? 'Mac' : /CrOS/.test(ua) ? 'ChromeOS'
+    : /Linux/.test(ua) ? 'Linux' : 'other';
+  const browser = /Edg\//.test(ua) ? 'Edge' : /SamsungBrowser/.test(ua) ? 'Samsung' : /CriOS|Chrome\//.test(ua) ? 'Chrome'
+    : /FxiOS|Firefox\//.test(ua) ? 'Firefox' : /Safari\//.test(ua) ? 'Safari' : 'other';
+  return `${os} ${browser}`;
+}
+
+function refOrigin(ref) {
+  if (!ref) return '';
+  try { return new URL(ref).origin.slice(0, 80); } catch { return ''; }
+}
 
 // ---------- Responses / logging ----------
 function json(obj, status = 200, extra = {}) {

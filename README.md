@@ -17,6 +17,7 @@ serves; server code, scripts, and config sit outside it on purpose.
 | `gov.html` | Government contracting (linked from Portfolio and the home page band): capability statement content for program offices and primes (UEI, CAGE, NAICS, PSC) |
 | `careers.html` | Careers — open roles (currently the confidential GM search) |
 | `contact.html` | Contact — email, phone (spam-protected), in-person |
+| `privacy.html` | Privacy notice (linked in every footer): what the site, the QR scan links, the upload portal and email collect, and for how long |
 | `404.html` | Not-found page |
 | `upload.html` / `upload.js` / `upload.css` | **Secure client document upload** (unlisted; see section below) |
 | `_redirects` | Redirects the old /government address to /gov (the address printed on the capability statement) |
@@ -27,7 +28,7 @@ serves; server code, scripts, and config sit outside it on purpose.
 | `archive/` | The previous one-page site, kept for reference |
 
 Outside `public/` (never served): `src/worker.js` (the Worker), `scripts/` (operator
-commands: setup, set password, manage client links), `wrangler.toml`, `package.json`.
+commands: setup, set password, manage client links, QR scan report), `wrangler.toml`, `package.json`.
 
 ## Hosting — how the live site actually works
 
@@ -67,6 +68,43 @@ npm run dev          # http://localhost:8787
 ```
 
 For a quick static-only look (upload page will not function): `cd public && python3 -m http.server 8000`.
+
+---
+
+## QR scan links on printed pieces (`/c`, `/cs`), added 2026-11-07
+
+Each printed piece has its own short link in its QR code, so scans can be counted and told apart:
+
+| Link | Printed on |
+|------|------------|
+| https://www.mtzioncapital.com/c  | Business card (back) |
+| https://www.mtzioncapital.com/cs | Capability statement |
+
+The Worker handles these paths (they are listed in `wrangler.toml` `run_worker_first`, upper and lower case, with and
+without a trailing slash), logs the scan, and answers with a 302 redirect to `/gov`. Nothing slows the visitor down; a
+logging error never blocks the redirect. To add a link for a new printed piece, add it to `SCAN_LINKS` in
+`src/worker.js`, to `run_worker_first`, and to `SOURCES` in `scripts/scans.mjs`.
+
+What one scan records (KV key `scan:<time>:<random>`, all fields in the key's metadata, kept 400 days): time, which
+piece, country / region / city / time zone, ASN and network owner name (a company or agency on office Wi-Fi, a
+mobile carrier on cellular), a device/browser summary, browser language, referring site (usually none for a QR scan),
+the user agent, and `vid` = a keyed one-way hash of the IP (counts repeat visitors; the IP itself is never stored).
+No cookies. The same visitor scanning the same piece again within 10 minutes is stored once (deduped in the edge
+cache, so repeats cost no KV writes). Bots and link previews are stored with `bot: true`; `?test` marks a test scan.
+Each scan is also written to Workers Logs as event `qr_scan`. Names and emails are never known; the privacy page
+explains all of this.
+
+**See the scans** (needs `npx wrangler login` once on this Mac):
+
+```bash
+npm run scans                      # summary by piece, network owner, place, device, day + the 25 most recent
+npm run scans -- --csv scans.csv   # also write every scan to a CSV for Excel
+npm run scans -- --days 30         # last 30 days only; --all includes bots and ?test scans
+```
+
+The raw entries are also visible in the Cloudflare dashboard: Workers & Pages > KV > the PORTAL_KV namespace, keys
+starting `scan:`. Free-plan KV allows 1,000 writes a day, shared with the upload portal; deduping keeps scans well
+under that.
 
 ---
 
