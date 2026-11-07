@@ -519,11 +519,21 @@ function errMsg(err) { return String((err && err.message) || err); }
 // repeats from the same person or network (no dedupe, at Matthew's request); `vid` lets the report tell them apart.
 async function scanRedirect(request, env, ctx, url, src) {
   const target = `${url.origin}${SCAN_TARGET}`;
-  const headers = { Location: target, 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex', 'Referrer-Policy': 'no-referrer' };
+  const headers = {
+    Location: target, 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex', 'Referrer-Policy': 'no-referrer',
+    // Ask Chromium browsers (Chrome, Edge, Samsung Internet) for the phone model and OS version. Critical-CH makes
+    // them repeat this request at once with those hints; the two requests are merged into one scan (see storeScan).
+    'Accept-CH': SCAN_CH_ACCEPT, 'Critical-CH': SCAN_CH_CRITICAL, Vary: SCAN_CH_CRITICAL,
+  };
   try {
     const cf = request.cf || {};
     const ua = request.headers.get('User-Agent') || '';
+    const h = (n) => unq(request.headers.get(n));
+    const chromium = request.headers.has('Sec-CH-UA');
+    const hinted = request.headers.has('Sec-CH-UA-Model') || request.headers.has('Sec-CH-UA-Platform-Version');
     const vid = await ipHash(clientIp(request), env.SESSION_SECRET || 'mzc-scan');
+    const model = h('Sec-CH-UA-Model').slice(0, 40);
+    const org = String(cf.asOrganization || '').slice(0, 80);
     const event = {
       t: new Date().toISOString(),
       src,
@@ -533,20 +543,66 @@ async function scanRedirect(request, env, ctx, url, src) {
       country: cf.country || '',
       region: cf.region || '',
       city: cf.city || '',
+      zip: cf.postalCode || '',
+      metro: cf.metroCode || '',
+      lat: cf.latitude || '',
+      lon: cf.longitude || '',
       tz: cf.timezone || '',
       asn: cf.asn || '',
-      org: String(cf.asOrganization || '').slice(0, 80),
-      device: deviceSummary(ua),
+      org,
+      conn: connectionGuess(org, cf.asn),
+      rtt: cf.clientTcpRtt || '',
+      colo: cf.colo || '',
+      proto: cf.httpProtocol || '',
+      device: deviceSummary(ua, model),
+      model: model ? `${model}${phoneName(model) ? ` (${phoneName(model)})` : ''}` : '',
+      os: osVersion(ua, h('Sec-CH-UA-Platform'), h('Sec-CH-UA-Platform-Version')),
+      browser: browserVersion(ua, request.headers.get('Sec-CH-UA-Full-Version-List') || ''),
       lang: (request.headers.get('Accept-Language') || '').split(',')[0].slice(0, 20),
       ref: refOrigin(request.headers.get('Referer')),
       ua: ua.slice(0, 200),
     };
-    log('qr_scan', event);
-    if (request.method === 'GET' && env.PORTAL_KV) ctx.waitUntil(storeScan(env, event));
+    log('qr_scan', { ...event, pass: chromium ? (hinted ? 'hints' : 'first') : 'only' });
+    if (request.method === 'GET' && env.PORTAL_KV) {
+      const marker = new Request(`https://scan-retry.invalid/${src}/${vid}/${await sha256Hex(ua)}`);
+      if (chromium && !hinted) {
+        // First pass from a Chromium browser: park it for a few seconds in case the hinted repeat arrives.
+        await caches.default.put(marker, new Response(JSON.stringify(event), { headers: { 'Cache-Control': 'max-age=30' } }));
+        ctx.waitUntil(storeAfterWait(env, marker, event));
+      } else if (chromium && hinted) {
+        ctx.waitUntil(storeHinted(env, marker, event));
+      } else {
+        ctx.waitUntil(storeScan(env, event));
+      }
+    }
   } catch (err) {
     log('qr_scan_error', { src, message: errMsg(err) });   // never block the visitor
   }
   return new Response(null, { status: 302, headers });
+}
+
+const SCAN_CH_ACCEPT = 'Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List';
+const SCAN_CH_CRITICAL = 'Sec-CH-UA-Model, Sec-CH-UA-Platform-Version';
+const SCAN_MERGE_WAIT_MS = 4000;
+
+// The browser repeated the request with hints: take over the parked first pass (keeping its time) and store once.
+async function storeHinted(env, marker, event) {
+  const parked = await caches.default.match(marker);
+  if (parked) {
+    const first = await parked.json().catch(() => null);
+    await caches.default.delete(marker);
+    if (first && first.t) event.t = first.t;
+  }
+  await storeScan(env, event);
+}
+
+// No hinted repeat arrived (Chromium that does not retry, or a desktop browser): store the first pass as it is.
+async function storeAfterWait(env, marker, event) {
+  await new Promise((r) => setTimeout(r, SCAN_MERGE_WAIT_MS));
+  if (await caches.default.match(marker)) {
+    await caches.default.delete(marker);
+    await storeScan(env, event);
+  }
 }
 
 async function storeScan(env, event) {
@@ -560,17 +616,70 @@ async function storeScan(env, event) {
   });
 }
 
+function unq(v) { return String(v || '').replace(/^"|"$/g, '').trim(); }
+
 function isBot(ua) {
   return /bot|crawl|spider|slurp|preview|facebookexternalhit|embedly|whatsapp|telegram|discord|skype|curl|wget|python|httpclient|headless/i.test(ua);
 }
 
-function deviceSummary(ua) {
+function deviceSummary(ua, model) {
   const os = /iPhone/.test(ua) ? 'iPhone' : /iPad/.test(ua) ? 'iPad' : /Android/.test(ua) ? 'Android'
     : /Windows/.test(ua) ? 'Windows' : /Macintosh|Mac OS X/.test(ua) ? 'Mac' : /CrOS/.test(ua) ? 'ChromeOS'
     : /Linux/.test(ua) ? 'Linux' : 'other';
   const browser = /Edg\//.test(ua) ? 'Edge' : /SamsungBrowser/.test(ua) ? 'Samsung' : /CriOS|Chrome\//.test(ua) ? 'Chrome'
     : /FxiOS|Firefox\//.test(ua) ? 'Firefox' : /Safari\//.test(ua) ? 'Safari' : 'other';
-  return `${os} ${browser}`;
+  const name = model ? (phoneName(model) || model) : '';
+  return name ? `${name} ${browser}` : `${os} ${browser}`;
+}
+
+// Samsung reports model codes; map the common recent ones to their names (Pixel and most others report names).
+const SAMSUNG = [['SM-S93', { 1: 'Galaxy S25', 6: 'Galaxy S25+', 8: 'Galaxy S25 Ultra', 7: 'Galaxy S25 Edge' }],
+  ['SM-S92', { 1: 'Galaxy S24', 6: 'Galaxy S24+', 8: 'Galaxy S24 Ultra' }], ['SM-S72', { 1: 'Galaxy S24 FE' }],
+  ['SM-S91', { 1: 'Galaxy S23', 6: 'Galaxy S23+', 8: 'Galaxy S23 Ultra' }], ['SM-S71', { 1: 'Galaxy S23 FE' }],
+  ['SM-S90', { 1: 'Galaxy S22', 6: 'Galaxy S22+', 8: 'Galaxy S22 Ultra' }],
+  ['SM-F95', { 6: 'Galaxy Z Fold6' }], ['SM-F94', { 6: 'Galaxy Z Fold5' }], ['SM-F74', { 1: 'Galaxy Z Flip6' }],
+  ['SM-F73', { 1: 'Galaxy Z Flip5' }], ['SM-A16', { 6: 'Galaxy A16 5G' }], ['SM-A15', { 6: 'Galaxy A15 5G' }],
+  ['SM-A25', { 6: 'Galaxy A25 5G' }], ['SM-A35', { 6: 'Galaxy A35 5G' }], ['SM-A55', { 6: 'Galaxy A55 5G' }]];
+function phoneName(model) {
+  for (const [prefix, map] of SAMSUNG) {
+    if (model.startsWith(prefix)) { const d = model.charAt(prefix.length); if (map[d]) return map[d]; }
+  }
+  return '';
+}
+
+function osVersion(ua, chPlatform, chVersion) {
+  if (chPlatform && chVersion) return `${chPlatform} ${chVersion}`.slice(0, 30);
+  const ios = ua.match(/(?:iPhone|CPU) OS (\d+)_(\d+)/);
+  if (ios) {
+    // iOS 26 and later freeze the "OS 18_x" token; Safari's own version then matches the real iOS version.
+    const safari = ua.match(/Version\/(\d+)\.(\d+)/);
+    if (safari && Number(safari[1]) >= 26) return `iOS ${safari[1]}.${safari[2]}`;
+    return `iOS ${ios[1]}.${ios[2]}`;
+  }
+  const android = ua.match(/Android (\d+(?:\.\d+)?)/);
+  if (android) return `Android ${android[1]}`;
+  const win = ua.match(/Windows NT (\d+\.\d+)/);
+  if (win) return `Windows ${win[1]}`;
+  const mac = ua.match(/Mac OS X (\d+)[_.](\d+)/);
+  if (mac) return `macOS ${mac[1]}.${mac[2]}`;
+  return '';
+}
+
+function browserVersion(ua, fullList) {
+  const brands = [...fullList.matchAll(/"([^"]+)";v="([^"]+)"/g)].map((m) => [m[1], m[2]])
+    .filter(([b]) => !/Not.?A.?Brand|Chromium/i.test(b));
+  if (brands.length) return `${brands[0][0]} ${brands[0][1]}`.slice(0, 40);
+  const m = ua.match(/(Edg|SamsungBrowser|CriOS|FxiOS|Firefox|Chrome)\/([\d.]+)/) || ua.match(/Version\/([\d.]+).*Safari/);
+  if (!m) return '';
+  return m.length === 3 ? `${{ Edg: 'Edge', SamsungBrowser: 'Samsung Internet', CriOS: 'Chrome', FxiOS: 'Firefox' }[m[1]] || m[1]} ${m[2]}`
+    : `Safari ${m[1]}`;
+}
+
+// A rough guess from the network owner: big US mobile carriers mean cellular; anything else is Wi-Fi or wired.
+function connectionGuess(org, asn) {
+  if (/T-Mobile|Cellco|Verizon Wireless|AT&T Mobility|Sprint|U\.?S\.? Cellular|Cricket|Boost|Dish Wireless|Visible|Mint Mobile|Metro ?PCS/i.test(org)
+      || [21928, 22394, 6167, 20057].includes(Number(asn))) return 'cellular';
+  return org ? 'Wi-Fi or wired' : '';
 }
 
 function refOrigin(ref) {
@@ -612,11 +721,13 @@ async function scanLogPage(request, env, url) {
     'X-Frame-Options': 'DENY', 'X-Content-Type-Options': 'nosniff',
   };
   if (url.pathname === '/scans.csv') {
-    const cols = ['time_eastern', 'time_utc', 'piece', 'city', 'region', 'country', 'network_owner', 'asn', 'device',
-      'language', 'referrer', 'visitor', 'bot', 'test', 'restored', 'user_agent'];
+    const cols = ['time_eastern', 'time_utc', 'piece', 'city', 'region', 'zip', 'metro_code', 'country', 'latitude', 'longitude',
+      'network_owner', 'asn', 'connection_guess', 'round_trip_ms', 'cloudflare_data_center', 'http', 'device', 'model', 'os',
+      'browser', 'language', 'referrer', 'visitor', 'bot', 'test', 'restored', 'user_agent'];
     const csv = (v) => { const s = v === undefined || v === null ? '' : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
     const lines = [cols.join(',')].concat(scans.map((s) => [eastern(s.t), s.t, SCAN_SOURCES[s.src] || s.src, s.city, s.region,
-      s.country, s.org, s.asn, s.device, s.lang, s.ref, s.vid, s.bot ? 'yes' : '', s.test ? 'yes' : '', s.restored ? 'yes' : '', s.ua]
+      s.zip, s.metro, s.country, s.lat, s.lon, s.org, s.asn, s.conn, s.rtt, s.colo, s.proto, s.device, s.model, s.os, s.browser,
+      s.lang, s.ref, s.vid, s.bot ? 'yes' : '', s.test ? 'yes' : '', s.restored ? 'yes' : '', s.ua]
       .map(csv).join(',')));
     return new Response(lines.join('\n') + '\n', { headers: { ...headers, 'Content-Type': 'text/csv; charset=utf-8',
       'Content-Disposition': 'attachment; filename="qr-scans.csv"' } });
@@ -627,7 +738,7 @@ async function scanLogPage(request, env, url) {
     for (const s of scans) { const k = fn(s) || '(unknown)'; m.set(k, (m.get(k) || 0) + 1); }
     return [...m.entries()].sort((a, b) => b[1] - a[1]);
   };
-  const place = (s) => [s.city, s.region, s.country].filter(Boolean).join(', ');
+  const place = (s) => [s.city, [s.region, s.zip].filter(Boolean).join(' '), s.country].filter(Boolean).join(', ');
   const link = (extra) => {
     const p = new URLSearchParams({ k: key });
     for (const [a, b] of Object.entries(extra)) if (b) p.set(a, b);
@@ -643,7 +754,9 @@ async function scanLogPage(request, env, url) {
   const toggle = `<a class="${all ? 'on' : ''}" href="${esc(link({ days: days || '', all: all ? '' : '1' }))}">${all ? 'Hide' : 'Show'} bots and tests</a>`;
   const rows = scans.map((s) => `<tr>
       <td class="nowrap">${esc(eastern(s.t))}</td><td>${esc(SCAN_SOURCES[s.src] || s.src || '')}</td><td>${esc(place(s))}</td>
-      <td>${esc(s.org || '')}</td><td class="nowrap">${esc(s.device || '')}</td><td>${esc(s.lang || '')}</td>
+      <td>${esc(s.org || '')}<div class="muted small">${esc([s.conn, s.rtt ? `${s.rtt} ms` : ''].filter(Boolean).join(', '))}</div></td>
+      <td class="nowrap">${esc(s.device || '')}<div class="muted small">${esc([s.model && !String(s.device || '').includes(String(s.model).split(' (')[0]) ? s.model : '', s.os, s.browser].filter(Boolean).join(', '))}</div></td>
+      <td>${esc(s.lang || '')}</td>
       <td class="mono">${esc((s.vid || '').slice(0, 8))}</td>
       <td>${[s.bot ? 'bot' : '', s.test ? 'test' : '', s.restored ? 'restored' : ''].filter(Boolean).map((f) => `<span class="tag">${f}</span>`).join(' ')}</td>
     </tr>`).join('');
@@ -671,7 +784,7 @@ async function scanLogPage(request, env, url) {
   td, th { padding: 6px 8px; border-top: 1px solid var(--line); text-align: left; vertical-align: top; }
   th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; border-top: 0; }
   td.n { text-align: right; font-weight: 700; color: var(--pine); width: 3em; }
-  .nowrap { white-space: nowrap; } .mono { font-family: ui-monospace, Menlo, monospace; font-size: 12px; } .muted { color: var(--muted); }
+  .small { font-size: 12px; } .nowrap { white-space: nowrap; } .mono { font-family: ui-monospace, Menlo, monospace; font-size: 12px; } .muted { color: var(--muted); }
   .tag { display: inline-block; background: var(--cream2); color: var(--muted); border-radius: 4px; padding: 0 6px; font-size: 12px; }
   footer { color: var(--muted); font-size: 12px; margin-top: 16px; }
 </style></head><body>
@@ -687,13 +800,16 @@ async function scanLogPage(request, env, url) {
     ${tally('Network owner', count((s) => s.org))}
     ${tally('Place', count(place))}
     ${tally('Device', count((s) => s.device))}
+    ${tally('Connection (guess)', count((s) => s.conn))}
     ${tally('By day (Eastern)', count((s) => eastern(s.t).slice(0, 10)).sort((a, b) => (a[0] < b[0] ? 1 : -1)), 14)}
   </div>
   <section class="card"><h2>Every scan</h2>
     ${scans.length ? `<table><tr><th>Time (Eastern)</th><th>Piece</th><th>Place</th><th>Network owner</th><th>Device</th><th>Language</th><th>Visitor</th><th></th></tr>${rows}</table>`
       : '<p class="muted">No scans yet.</p>'}
   </section>
-  <footer>Network owner is the company or agency on office Wi-Fi, or the mobile carrier on cellular. Visitor is a scrambled code
+  <footer>Place, ZIP and the CSV's map point come from the visitor's internet provider, so they are approximate (often a few
+  miles off). Network owner is the company or agency on office Wi-Fi, or the mobile carrier on cellular; the connection
+  guess and round-trip time follow from it. iPhones never report their model; Android phones in Chrome do. Visitor is a scrambled code
   from the network address (the address itself is never stored), so the same code means the same network. Entries delete
   themselves about 13 months after the scan.</footer>
 </main></body></html>`;

@@ -15,7 +15,8 @@ import { parseArgs, runWrangler, ensureLoggedIn, extractJson, KV_BINDING } from 
 const args = parseArgs(process.argv.slice(2));
 const where = args.local ? '--local' : '--remote';
 const SOURCES = { card: 'Business card (/c)', 'capability-statement': 'Capability statement (/cs)' };
-const COLS = ['t', 'src', 'country', 'region', 'city', 'org', 'asn', 'device', 'lang', 'ref', 'vid', 'bot', 'test', 'ua'];
+const COLS = ['t', 'src', 'country', 'region', 'city', 'zip', 'metro', 'lat', 'lon', 'org', 'asn', 'conn', 'rtt', 'colo', 'proto',
+  'device', 'model', 'os', 'browser', 'lang', 'ref', 'vid', 'bot', 'test', 'restored', 'ua'];
 
 if (!args.local) await ensureLoggedIn();
 const out = await runWrangler(['kv', 'key', 'list', '--binding', KV_BINDING, where, '--prefix', 'scan:'], { quiet: true });

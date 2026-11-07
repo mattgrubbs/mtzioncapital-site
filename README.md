@@ -86,9 +86,20 @@ logging error never blocks the redirect. To add a link for a new printed piece, 
 `src/worker.js`, to `run_worker_first`, and to `SOURCES` in `scripts/scans.mjs`.
 
 What one scan records (KV key `scan:<time>:<random>`, all fields in the key's metadata, kept 400 days): time, which
-piece, country / region / city / time zone, ASN and network owner name (a company or agency on office Wi-Fi, a
-mobile carrier on cellular), a device/browser summary, browser language, referring site (usually none for a QR scan),
-the user agent, and `vid` = a keyed one-way hash of the IP (counts repeat visitors; the IP itself is never stored).
+piece, country / region / city / ZIP / metro code / approximate latitude and longitude / time zone (all from
+Cloudflare's IP data, so city-level and often a few miles off), ASN and network owner name (a company or agency on
+office Wi-Fi, a mobile carrier on cellular), a cellular vs Wi-Fi-or-wired guess from that owner, the TCP round-trip
+time, the Cloudflare data center and HTTP version, a device/browser summary, OS version, browser version, the phone
+model when the browser shares it, browser language, referring site (usually none for a QR scan), the user agent, and
+`vid` = a keyed one-way hash of the IP (counts repeat visitors; the IP itself is never stored).
+
+Phone model: iPhones never send it (Apple freezes the user agent to "iPhone"). Chromium browsers (Chrome, Edge,
+Samsung Internet) send it when asked, so the redirect carries `Accept-CH` and `Critical-CH` for Sec-CH-UA-Model and
+Sec-CH-UA-Platform-Version; the browser then repeats the request once with the hints. The first pass is parked in the
+edge cache for 4 seconds; if the hinted repeat arrives it takes over (keeping the first pass's time) and one scan is
+stored with the model, otherwise the first pass is stored as is. This merges the browser's automatic repeat of one
+scan only; separate scans are all stored and counted. Common Samsung model codes are turned into names (`phoneName`).
+On iOS 26 and later Safari freezes the OS token at 18.x, so the iOS version is read from Safari's own version.
 No cookies. Every scan is stored and counted, repeats included (no dedupe, Matthew 2026-11-07); the report's
 "Different visitors" line uses `vid` to tell people apart. Bots and link previews are stored with `bot: true`;
 `?test` marks a test scan.
