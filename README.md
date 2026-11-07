@@ -103,6 +103,20 @@ npm run scans -- --csv scans.csv   # also write every scan to a CSV for Excel
 npm run scans -- --days 30         # last 30 days only; --all includes bots and ?test scans
 ```
 
+**See the scans in a web browser** (no token or Cloudflare sign-in needed to view): the private page
+`https://www.mtzioncapital.com/scans?k=KEY`. The key in the link is the password, so bookmark it and do not share it.
+It shows totals, scans by piece, network owner, place, device and day (Eastern time), every scan, a bots/tests
+toggle, 7/30/90-day ranges and a CSV download (`/scans.csv?k=KEY`). Only a SHA-256 hash of each key is stored (KV key
+`scanview:<hash>`); without a valid key the page answers with the normal 404, so it does not reveal that it exists.
+All scan text is HTML-escaped, and the page sends no-store, noindex, no-referrer, frame-deny and a no-script CSP.
+Manage links (these need Cloudflare access):
+
+```bash
+npm run scanview:create -- --label "Matthew laptop"   # prints a new link once
+npm run scanview:list
+npm run scanview:revoke -- <first 8+ characters of the hash from list>
+```
+
 The raw entries are also visible in the Cloudflare dashboard: Workers & Pages > KV > the PORTAL_KV namespace, keys
 starting `scan:`. Free-plan KV allows 1,000 writes a day, shared with the upload portal (each scan is one write).
 

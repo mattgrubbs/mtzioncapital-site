@@ -15,7 +15,10 @@
     "link:update": "node scripts/link.mjs update",
     "link:revoke": "node scripts/link.mjs revoke",
     "link:delete": "node scripts/link.mjs delete",
-    "scans": "node scripts/scans.mjs"
+    "scans": "node scripts/scans.mjs",
+    "scanview:create": "node scripts/scanview.mjs create",
+    "scanview:list": "node scripts/scanview.mjs list",
+    "scanview:revoke": "node scripts/scanview.mjs revoke"
   },
   "devDependencies": {
     "wrangler": "^4.128.0"

@@ -10,7 +10,8 @@ directory = "public"
 binding = "ASSETS"
 not_found_handling = "404-page"
 # /c and /cs are the QR links on the business card and capability statement: logged, then sent to /gov.
-run_worker_first = ["/api/*", "/c", "/c/", "/cs", "/cs/", "/C", "/C/", "/CS", "/CS/"]
+# /scans is the private scan log page (needs its secret link key; see README).
+run_worker_first = ["/api/*", "/c", "/c/", "/cs", "/cs/", "/C", "/C/", "/CS", "/CS/", "/scans", "/scans.csv"]
 
 # Private bucket for client uploads. Never enable public access on this bucket.
 [[r2_buckets]]

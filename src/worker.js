@@ -71,6 +71,14 @@ export default {
     if (scanSrc && (request.method === 'GET' || request.method === 'HEAD')) {
       return scanRedirect(request, env, ctx, url, scanSrc);
     }
+    if ((url.pathname === '/scans' || url.pathname === '/scans.csv') && request.method === 'GET') {
+      try {
+        return await scanLogPage(request, env, url);
+      } catch (err) {
+        log('scanlog_error', { message: errMsg(err) });
+        return new Response('Something went wrong.', { status: 500, headers: { 'Cache-Control': 'no-store' } });
+      }
+    }
     if (url.pathname.startsWith('/api/upload/')) {
       try {
         return await handleApi(request, env, ctx, url);
@@ -568,6 +576,145 @@ function deviceSummary(ua) {
 function refOrigin(ref) {
   if (!ref) return '';
   try { return new URL(ref).origin.slice(0, 80); } catch { return ''; }
+}
+
+// ---------- Private scan log page: /scans?k=KEY (and /scans.csv?k=KEY) ----------
+// The link's key is the credential, like the upload portal's client links. Only a SHA-256 hash of each key is kept,
+// as the KV key "scanview:<hash>", so the key itself is stored nowhere on Cloudflare. A missing or wrong key gets the
+// site's normal 404, so the page does not reveal that it exists. Delete the KV key to revoke a link.
+// Options: &days=7|30|90 (default all), &all=1 (include bots, link previews and ?test scans).
+const SCAN_SOURCES = { card: 'Business card (/c)', 'capability-statement': 'Capability statement (/cs)' };
+
+async function scanLogPage(request, env, url) {
+  const key = url.searchParams.get('k') || '';
+  const ok = key.length >= 32 && env.PORTAL_KV &&
+    (await env.PORTAL_KV.get(`scanview:${await sha256Hex(key)}`)) !== null;
+  if (!ok) return env.ASSETS.fetch(new Request(`${url.origin}/404`)).then((r) => new Response(r.body, {
+    status: 404, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } }));
+
+  const days = parseInt(url.searchParams.get('days') || '', 10) || 0;
+  const all = url.searchParams.get('all') === '1';
+  let scans = [];
+  let cursor;
+  for (let i = 0; i < 20; i++) {                         // up to 20,000 scans
+    const page = await env.PORTAL_KV.list({ prefix: 'scan:', limit: 1000, cursor });
+    for (const k of page.keys) scans.push({ ...(k.metadata || {}), t: (k.metadata && k.metadata.t) || '' });
+    if (page.list_complete) break;
+    cursor = page.cursor;
+  }
+  const total = scans.length;
+  if (!all) scans = scans.filter((s) => !s.bot && !s.test);
+  if (days) { const since = Date.now() - days * 86400000; scans = scans.filter((s) => Date.parse(s.t) >= since); }
+  scans.sort((a, b) => (a.t < b.t ? 1 : -1));
+
+  const headers = {
+    'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow', 'Referrer-Policy': 'no-referrer',
+    'X-Frame-Options': 'DENY', 'X-Content-Type-Options': 'nosniff',
+  };
+  if (url.pathname === '/scans.csv') {
+    const cols = ['time_eastern', 'time_utc', 'piece', 'city', 'region', 'country', 'network_owner', 'asn', 'device',
+      'language', 'referrer', 'visitor', 'bot', 'test', 'restored', 'user_agent'];
+    const csv = (v) => { const s = v === undefined || v === null ? '' : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+    const lines = [cols.join(',')].concat(scans.map((s) => [eastern(s.t), s.t, SCAN_SOURCES[s.src] || s.src, s.city, s.region,
+      s.country, s.org, s.asn, s.device, s.lang, s.ref, s.vid, s.bot ? 'yes' : '', s.test ? 'yes' : '', s.restored ? 'yes' : '', s.ua]
+      .map(csv).join(',')));
+    return new Response(lines.join('\n') + '\n', { headers: { ...headers, 'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': 'attachment; filename="qr-scans.csv"' } });
+  }
+
+  const count = (fn) => {
+    const m = new Map();
+    for (const s of scans) { const k = fn(s) || '(unknown)'; m.set(k, (m.get(k) || 0) + 1); }
+    return [...m.entries()].sort((a, b) => b[1] - a[1]);
+  };
+  const place = (s) => [s.city, s.region, s.country].filter(Boolean).join(', ');
+  const link = (extra) => {
+    const p = new URLSearchParams({ k: key });
+    for (const [a, b] of Object.entries(extra)) if (b) p.set(a, b);
+    return `/scans?${p.toString()}`;
+  };
+  const tally = (title, rows, max = 12) => `<section class="card"><h2>${esc(title)}</h2>` +
+    (rows.length ? `<table>${rows.slice(0, max).map(([k, n]) => `<tr><td>${esc(k)}</td><td class="n">${n}</td></tr>`).join('')}</table>`
+      : '<p class="muted">None yet.</p>') + '</section>';
+  const visitors = new Set(scans.map((s) => s.vid)).size;
+  const byPiece = Object.keys(SCAN_SOURCES).map((src) => [SCAN_SOURCES[src], scans.filter((s) => s.src === src).length]);
+  const rangeLinks = [['All time', 0], ['Last 7 days', 7], ['Last 30 days', 30], ['Last 90 days', 90]]
+    .map(([label, d]) => `<a class="${d === days ? 'on' : ''}" href="${esc(link({ days: d || '', all: all ? '1' : '' }))}">${label}</a>`).join('');
+  const toggle = `<a class="${all ? 'on' : ''}" href="${esc(link({ days: days || '', all: all ? '' : '1' }))}">${all ? 'Hide' : 'Show'} bots and tests</a>`;
+  const rows = scans.map((s) => `<tr>
+      <td class="nowrap">${esc(eastern(s.t))}</td><td>${esc(SCAN_SOURCES[s.src] || s.src || '')}</td><td>${esc(place(s))}</td>
+      <td>${esc(s.org || '')}</td><td class="nowrap">${esc(s.device || '')}</td><td>${esc(s.lang || '')}</td>
+      <td class="mono">${esc((s.vid || '').slice(0, 8))}</td>
+      <td>${[s.bot ? 'bot' : '', s.test ? 'test' : '', s.restored ? 'restored' : ''].filter(Boolean).map((f) => `<span class="tag">${f}</span>`).join(' ')}</td>
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="robots" content="noindex, nofollow" />
+<title>QR scan log | Mt. Zion Capital</title><link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<style>
+  :root { --pine:#1f3d34; --brass:#c19a4b; --cream:#faf7f2; --cream2:#f2ece1; --ink:#22201c; --muted:#6b6459; --line:#e7e0d3; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--cream); color: var(--ink); font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Calibri, Arial, sans-serif; }
+  header { background: var(--pine); color: var(--cream); padding: 18px 20px; }
+  header h1 { margin: 0; font-size: 22px; } header p { margin: 4px 0 0; color: #d8b96f; font-size: 13px; }
+  main { max-width: 1100px; margin: 0 auto; padding: 18px 16px 40px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+  .bar a { text-decoration: none; color: var(--pine); border: 1px solid var(--line); background: #fff; padding: 6px 10px; border-radius: 6px; font-size: 13px; }
+  .bar a.on { background: var(--pine); color: var(--cream); border-color: var(--pine); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .stat { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+  .stat b { display: block; font-size: 26px; color: var(--pine); } .stat span { color: var(--muted); font-size: 13px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; overflow-x: auto; }
+  .card h2 { margin: 0 0 8px; font-size: 14px; color: var(--pine); text-transform: uppercase; letter-spacing: .06em; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td, th { padding: 6px 8px; border-top: 1px solid var(--line); text-align: left; vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; border-top: 0; }
+  td.n { text-align: right; font-weight: 700; color: var(--pine); width: 3em; }
+  .nowrap { white-space: nowrap; } .mono { font-family: ui-monospace, Menlo, monospace; font-size: 12px; } .muted { color: var(--muted); }
+  .tag { display: inline-block; background: var(--cream2); color: var(--muted); border-radius: 4px; padding: 0 6px; font-size: 12px; }
+  footer { color: var(--muted); font-size: 12px; margin-top: 16px; }
+</style></head><body>
+<header><h1>QR scan log</h1><p>Mt. Zion Capital &middot; private page, keep this link to yourself &middot; updated ${esc(eastern(new Date().toISOString()))} Eastern</p></header>
+<main>
+  <div class="bar">${rangeLinks}${toggle}<a href="${esc(link({ days: days || '', all: all ? '1' : '' }).replace('/scans?', '/scans.csv?'))}">Download CSV</a></div>
+  <div class="stats">
+    <div class="stat"><b>${scans.length}</b><span>scans shown${all ? '' : ` (${total - scans.length} bots or tests hidden)`}</span></div>
+    <div class="stat"><b>${visitors}</b><span>different visitors</span></div>
+    ${byPiece.map(([label, n]) => `<div class="stat"><b>${n}</b><span>${esc(label)}</span></div>`).join('')}
+  </div>
+  <div class="grid">
+    ${tally('Network owner', count((s) => s.org))}
+    ${tally('Place', count(place))}
+    ${tally('Device', count((s) => s.device))}
+    ${tally('By day (Eastern)', count((s) => eastern(s.t).slice(0, 10)).sort((a, b) => (a[0] < b[0] ? 1 : -1)), 14)}
+  </div>
+  <section class="card"><h2>Every scan</h2>
+    ${scans.length ? `<table><tr><th>Time (Eastern)</th><th>Piece</th><th>Place</th><th>Network owner</th><th>Device</th><th>Language</th><th>Visitor</th><th></th></tr>${rows}</table>`
+      : '<p class="muted">No scans yet.</p>'}
+  </section>
+  <footer>Network owner is the company or agency on office Wi-Fi, or the mobile carrier on cellular. Visitor is a scrambled code
+  from the network address (the address itself is never stored), so the same code means the same network. Entries delete
+  themselves about 13 months after the scan.</footer>
+</main></body></html>`;
+  return new Response(html, { headers: { ...headers, 'Content-Type': 'text/html; charset=utf-8',
+    'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'" } });
+}
+
+async function sha256Hex(s) {
+  return hex(new Uint8Array(await crypto.subtle.digest('SHA-256', TEXT.encode(s))));
+}
+
+function eastern(iso) {
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit',
+    day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(d).map((x) => [x.type, x.value]));
+  return `${p.year}-${p.month}-${p.day} ${p.hour === '24' ? '00' : p.hour}:${p.minute}`;
+}
+
+function esc(v) {
+  return String(v === undefined || v === null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 // ---------- Responses / logging ----------
